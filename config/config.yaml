@@ -1,0 +1,45 @@
+data:
+  raw_path: data/raw/diabetic_data.csv
+  processed_path: data/processed/
+  test_size: 0.20
+  random_state: 42
+  target_column: readmitted
+
+features:
+  numeric:
+    - time_in_hospital
+    - num_lab_procedures
+    - num_procedures
+    - num_medications
+    - number_outpatient
+    - number_emergency
+    - number_inpatient
+    - number_diagnoses
+  categorical:
+    - race
+    - gender
+    - age
+    - admission_type_id
+    - discharge_disposition_id
+    - admission_source_id
+    - medical_specialty
+    - A1Cresult
+    - change
+    - diabetesMed
+  diagnosis:
+    - diag_1
+    - diag_2
+    - diag_3
+
+model:
+  baseline:
+    name: logistic_regression
+    C: 1.0
+    max_iter: 1000
+    class_weight: balanced
+    random_state: 42
+
+results:
+  metrics_path: results/metrics.json
+  plots_path: results/plots/
+  models_path: models/
