@@ -1,0 +1,214 @@
+{
+  "phase": 3,
+  "date": "2026-04-01",
+  "anthony_reference": {
+    "phase2_pr": 1,
+    "phase2_champion": "CatBoost + domain features",
+    "phase2_champion_sensitivity": 0.4469
+  },
+  "dataset": {
+    "train_samples": 40695,
+    "test_samples": 10174,
+    "train_positive_rate": 0.1489,
+    "test_positive_rate": 0.1489,
+    "domain_feature_count": 65,
+    "phase3_feature_count": 75
+  },
+  "results": [
+    {
+      "model": "3.6_brf_interactions",
+      "accuracy": 0.555,
+      "f1": 0.2647,
+      "precision": 0.1756,
+      "recall_sensitivity": 0.538,
+      "specificity": 0.558,
+      "auc_roc": 0.5627,
+      "auc_pr": 0.1818,
+      "tp": 815,
+      "fp": 3827,
+      "fn": 700,
+      "tn": 4832,
+      "train_time_s": 2.2,
+      "n_features": 75,
+      "label": "BalancedRandomForest + Mark interaction features",
+      "model_family": "BalancedRandomForest",
+      "feature_family": "phase3"
+    },
+    {
+      "model": "3.5_brf_domain",
+      "accuracy": 0.5525,
+      "f1": 0.2603,
+      "precision": 0.1726,
+      "recall_sensitivity": 0.5287,
+      "specificity": 0.5566,
+      "auc_roc": 0.56,
+      "auc_pr": 0.1802,
+      "tp": 801,
+      "fp": 3839,
+      "fn": 714,
+      "tn": 4820,
+      "train_time_s": 2.14,
+      "n_features": 65,
+      "label": "BalancedRandomForest + Anthony domain features",
+      "model_family": "BalancedRandomForest",
+      "feature_family": "domain"
+    },
+    {
+      "model": "3.2_catboost_interactions",
+      "accuracy": 0.6024,
+      "f1": 0.2472,
+      "precision": 0.1721,
+      "recall_sensitivity": 0.4383,
+      "specificity": 0.6311,
+      "auc_roc": 0.5528,
+      "auc_pr": 0.1738,
+      "tp": 664,
+      "fp": 3194,
+      "fn": 851,
+      "tn": 5465,
+      "train_time_s": 2.49,
+      "n_features": 75,
+      "label": "CatBoost + Mark interaction features",
+      "model_family": "CatBoost",
+      "feature_family": "phase3"
+    },
+    {
+      "model": "3.1_catboost_domain",
+      "accuracy": 0.6058,
+      "f1": 0.2482,
+      "precision": 0.1733,
+      "recall_sensitivity": 0.437,
+      "specificity": 0.6353,
+      "auc_roc": 0.5533,
+      "auc_pr": 0.1802,
+      "tp": 662,
+      "fp": 3158,
+      "fn": 853,
+      "tn": 5501,
+      "train_time_s": 2.56,
+      "n_features": 65,
+      "label": "CatBoost + Anthony domain features",
+      "model_family": "CatBoost",
+      "feature_family": "domain"
+    },
+    {
+      "model": "3.4_lgbm_interactions",
+      "accuracy": 0.6531,
+      "f1": 0.2363,
+      "precision": 0.1758,
+      "recall_sensitivity": 0.3604,
+      "specificity": 0.7044,
+      "auc_roc": 0.5468,
+      "auc_pr": 0.1727,
+      "tp": 546,
+      "fp": 2560,
+      "fn": 969,
+      "tn": 6099,
+      "train_time_s": 0.6,
+      "n_features": 75,
+      "label": "LightGBM + Mark interaction features",
+      "model_family": "LightGBM",
+      "feature_family": "phase3"
+    },
+    {
+      "model": "3.3_lgbm_domain",
+      "accuracy": 0.6382,
+      "f1": 0.2278,
+      "precision": 0.167,
+      "recall_sensitivity": 0.3584,
+      "specificity": 0.6871,
+      "auc_roc": 0.5365,
+      "auc_pr": 0.1656,
+      "tp": 543,
+      "fp": 2709,
+      "fn": 972,
+      "tn": 5950,
+      "train_time_s": 0.71,
+      "n_features": 65,
+      "label": "LightGBM + Anthony domain features",
+      "model_family": "LightGBM",
+      "feature_family": "domain"
+    }
+  ],
+  "best_model": {
+    "model": "3.6_brf_interactions",
+    "accuracy": 0.555,
+    "f1": 0.2647,
+    "precision": 0.1756,
+    "recall_sensitivity": 0.538,
+    "specificity": 0.558,
+    "auc_roc": 0.5627,
+    "auc_pr": 0.1818,
+    "tp": 815,
+    "fp": 3827,
+    "fn": 700,
+    "tn": 4832,
+    "train_time_s": 2.2,
+    "n_features": 75,
+    "label": "BalancedRandomForest + Mark interaction features",
+    "model_family": "BalancedRandomForest",
+    "feature_family": "phase3"
+  },
+  "top_features": [
+    {
+      "feature": "service_intensity",
+      "importance": 0.052316968541557755,
+      "feature_origin": "Mark interaction"
+    },
+    {
+      "feature": "diag_2",
+      "importance": 0.04882548826737956,
+      "feature_origin": "Anthony/base domain"
+    },
+    {
+      "feature": "diag_1",
+      "importance": 0.047386183204519816,
+      "feature_origin": "Anthony/base domain"
+    },
+    {
+      "feature": "medication_complexity_index",
+      "importance": 0.047340635850190944,
+      "feature_origin": "Mark interaction"
+    },
+    {
+      "feature": "diag_3",
+      "importance": 0.04499790338624039,
+      "feature_origin": "Anthony/base domain"
+    },
+    {
+      "feature": "med_per_day",
+      "importance": 0.04320647110219631,
+      "feature_origin": "Anthony/base domain"
+    },
+    {
+      "feature": "num_lab_procedures",
+      "importance": 0.03871469318376427,
+      "feature_origin": "Anthony/base domain"
+    },
+    {
+      "feature": "lace_diagnosis_pressure",
+      "importance": 0.03751281552879341,
+      "feature_origin": "Mark interaction"
+    },
+    {
+      "feature": "admission_source_id",
+      "importance": 0.035506147243985244,
+      "feature_origin": "Anthony/base domain"
+    },
+    {
+      "feature": "acute_utilization_burden",
+      "importance": 0.035398765758610735,
+      "feature_origin": "Mark interaction"
+    },
+    {
+      "feature": "discharge_disposition_id",
+      "importance": 0.03457106897525789,
+      "feature_origin": "Anthony/base domain"
+    },
+    {
+      "feature": "num_medications",
+      "importance": 0.032737974381863426,
+      "feature_origin": "Anthony/base domain"
+    }
+  ]
+}

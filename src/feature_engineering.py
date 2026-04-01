@@ -211,6 +211,71 @@ def engineer_features(df: pd.DataFrame, age_col_raw: pd.Series = None) -> pd.Dat
     return df
 
 
+def _safe_divide(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
+    """Divide while avoiding inf when counts are zero."""
+    return numerator / denominator.replace(0, 1)
+
+
+def engineer_phase3_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Phase 3 interaction-focused features for Mark's complementary experiment.
+
+    These intentionally go beyond Anthony's composite scores and target the
+    interaction structure Phase 1/2 suggested mattered most:
+    utilization x acuity, medication burden x complexity, and service intensity.
+    """
+    df = engineer_features(df).copy()
+
+    if all(col in df.columns for col in ["time_in_hospital", "number_inpatient", "number_emergency"]):
+        df["acute_utilization_burden"] = (
+            df["time_in_hospital"] * (1 + df["number_inpatient"] + df["number_emergency"])
+        )
+
+    if all(col in df.columns for col in ["charlson_score", "number_diagnoses"]):
+        df["chronic_complexity_index"] = df["charlson_score"] * df["number_diagnoses"]
+
+    if all(col in df.columns for col in ["num_medications", "number_diagnoses", "time_in_hospital"]):
+        df["medication_complexity_index"] = _safe_divide(
+            df["num_medications"] * df["number_diagnoses"],
+            df["time_in_hospital"],
+        )
+
+    if all(col in df.columns for col in ["num_lab_procedures", "num_procedures", "time_in_hospital"]):
+        df["service_intensity"] = _safe_divide(
+            df["num_lab_procedures"] + (2 * df["num_procedures"]),
+            df["time_in_hospital"],
+        )
+
+    if all(col in df.columns for col in ["number_emergency", "number_inpatient"]):
+        df["ed_inpatient_mix"] = _safe_divide(
+            df["number_emergency"] + 1,
+            df["number_inpatient"] + 1,
+        )
+
+    if all(col in df.columns for col in ["total_prior_visits", "high_polypharmacy"]):
+        df["polypharmacy_utilization_overlap"] = df["total_prior_visits"] * (1 + df["high_polypharmacy"])
+
+    if all(col in df.columns for col in ["age", "charlson_score"]):
+        df["age_comorbidity_pressure"] = df["age"] * (1 + df["charlson_score"])
+
+    if all(col in df.columns for col in ["lace_score", "number_diagnoses"]):
+        df["lace_diagnosis_pressure"] = df["lace_score"] * df["number_diagnoses"]
+
+    if all(col in df.columns for col in ["lab_intensity", "med_per_day"]):
+        df["lab_medication_pressure"] = df["lab_intensity"] * df["med_per_day"]
+
+    if all(col in df.columns for col in ["number_outpatient", "number_inpatient"]):
+        df["outpatient_inpatient_gap"] = df["number_outpatient"] - df["number_inpatient"]
+
+    bool_cols = df.select_dtypes(include="bool").columns
+    if len(bool_cols) > 0:
+        df[bool_cols] = df[bool_cols].astype(int)
+
+    df = df.replace([np.inf, -np.inf], 0).fillna(0)
+    logger.info(f"Phase 3 interaction feature set: {df.shape[1]} columns")
+    return df
+
+
 if __name__ == "__main__":
     from src.data_pipeline import run_pipeline
     X_train, X_test, y_train, y_test = run_pipeline()
