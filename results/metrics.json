@@ -1,0 +1,49 @@
+{
+  "phase": 1,
+  "dataset": "UCI Diabetes 130-US Hospitals",
+  "n_samples": 101766,
+  "n_features": 68,
+  "class_balance": {
+    "readmitted_30d": 0.11159915885462728,
+    "not_readmitted": 0.8884008411453728
+  },
+  "baselines": [
+    {
+      "model": "Majority Class (Always 0)",
+      "accuracy": 0.8884248796305394,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "auc": 0.5
+    },
+    {
+      "model": "LACE Index (threshold=6)",
+      "accuracy": 0.3873931413972683,
+      "f1": 0.2127659574468085,
+      "precision": 0.12418926886792453,
+      "recall": 0.7419638925583444,
+      "auc": 0.5579839018637408
+    },
+    {
+      "model": "Logistic Regression (balanced)",
+      "accuracy": 0.6585437751793259,
+      "f1": 0.2598509052183174,
+      "precision": 0.17137238376176428,
+      "recall": 0.5372082782915015,
+      "auc": 0.6483160858172136
+    },
+    {
+      "model": "LogReg (clinical features only, n=23)",
+      "accuracy": 0.6721528937800924,
+      "f1": 0.25532864635643343,
+      "precision": 0.17100149476831092,
+      "recall": 0.503742844561867,
+      "auc": 0.644535278432468
+    }
+  ],
+  "published_benchmarks": {
+    "LACE_AUC": "0.66-0.77",
+    "ML_SOTA_AUC": "0.78-0.87",
+    "general_30day_readmission_rate": "15-20%"
+  }
+}
