@@ -1,0 +1,13 @@
+project:
+  name: Healthcare Readmission Predictor
+  version: 0.1.0
+
+data:
+  raw_path: data/raw/diabetic_data.csv
+  processed_path: data/processed/
+  test_size: 0.2
+  random_state: 42
+
+model:
+  target: readmitted_binary
+  random_state: 42
