@@ -14,3 +14,4 @@ dist/
 build/
 .pytest_cache/
 .ipynb_checkpoints/
+catboost_info/
