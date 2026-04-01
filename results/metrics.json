@@ -1,0 +1,63 @@
+{
+  "experiment_1_1_baseline": {
+    "model": "LR_baseline_raw",
+    "accuracy": 0.571,
+    "f1": 0.262,
+    "precision": 0.1761,
+    "recall_sensitivity": 0.5116,
+    "specificity": 0.5814,
+    "auc_roc": 0.5685,
+    "auc_pr": 0.1861,
+    "tp": 775,
+    "fp": 3625,
+    "fn": 740,
+    "tn": 5034
+  },
+  "experiment_1_2_domain": {
+    "model": "LR_domain_features",
+    "accuracy": 0.5682,
+    "f1": 0.2625,
+    "precision": 0.176,
+    "recall_sensitivity": 0.5162,
+    "specificity": 0.5773,
+    "auc_roc": 0.5658,
+    "auc_pr": 0.1835,
+    "tp": 782,
+    "fp": 3660,
+    "fn": 733,
+    "tn": 4999,
+    "feature_count": 65,
+    "new_domain_features": [
+      "lace_length",
+      "lace_acuity",
+      "charlson_score",
+      "lace_comorbidity",
+      "lace_ed_visits",
+      "lace_score",
+      "lace_high_risk",
+      "polypharmacy",
+      "high_polypharmacy",
+      "extreme_polypharmacy",
+      "prior_inpatient_flag",
+      "high_utilizer",
+      "total_prior_visits",
+      "prior_visit_intensity",
+      "diag_cat_neoplasm",
+      "diag_cat_other",
+      "lab_intensity",
+      "high_lab_burden",
+      "complex_patient",
+      "med_per_day",
+      "a1c_tested",
+      "procedure_density"
+    ]
+  },
+  "dataset_info": {
+    "train_samples": 40695,
+    "test_samples": 10174,
+    "train_positive_rate": 0.14886349674407176,
+    "test_positive_rate": 0.14890898368390013,
+    "raw_feature_count": 43,
+    "domain_feature_count": 65
+  }
+}
