@@ -7,7 +7,9 @@ based on clinical literature (LACE index, Elixhauser comorbidities, etc.)
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from ucimlrepo import fetch_ucirepo
+from urllib.request import urlopen
+import io
+import zipfile
 
 
 # ICD-9 groupings based on CCS (Clinical Classifications Software)
@@ -51,8 +53,17 @@ def download_dataset(raw_path: str = 'data/raw/diabetic_data.csv') -> pd.DataFra
         return pd.read_csv(raw_path)
 
     print("Downloading UCI Diabetes 130-US Hospitals dataset...")
-    dataset = fetch_ucirepo(id=296)
-    df = dataset.data.original
+    dataset_url = (
+        "https://archive.ics.uci.edu/static/public/296/"
+        "diabetes+130-us+hospitals+for+years+1999-2008.zip"
+    )
+    with urlopen(dataset_url, timeout=120) as response:
+        archive_bytes = response.read()
+
+    with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+        with archive.open("diabetic_data.csv") as dataset_file:
+            df = pd.read_csv(dataset_file)
+
     raw_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(raw_path, index=False)
     print(f"Saved {len(df)} records to {raw_path}")
@@ -223,6 +234,23 @@ def prepare_data(df: pd.DataFrame, target: str = 'readmitted_binary', test_size:
     print(f"Target distribution - Train: {y_train.mean():.3f} | Test: {y_test.mean():.3f}")
 
     return X_train, X_test, y_train, y_test
+
+
+def load_raw(raw_path: str = 'data/raw/diabetic_data.csv') -> pd.DataFrame:
+    """Compatibility wrapper for legacy scripts."""
+    return download_dataset(raw_path=raw_path)
+
+
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Compatibility wrapper for legacy scripts."""
+    return clean_and_engineer(df)
+
+
+def get_feature_matrix(df: pd.DataFrame, target: str = 'readmitted_binary'):
+    """Return model matrix and target vector."""
+    X = df.drop(columns=[target])
+    y = df[target]
+    return X, y
 
 
 if __name__ == '__main__':
