@@ -1,0 +1,37 @@
+[
+  {
+    "phase": 1,
+    "date": "2026-04-01",
+    "dataset_size": 99353,
+    "positive_rate": 0.11387678278461646,
+    "models": [
+      {
+        "model": "Majority Class (Naive)",
+        "accuracy": 0.8861154446177847,
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "auc": 0.5,
+        "notes": "Predicts majority class always"
+      },
+      {
+        "model": "LACE Index (Industry Standard)",
+        "accuracy": 0.47440994413970106,
+        "f1": 0.2159159159159159,
+        "precision": 0.13005335986253053,
+        "recall": 0.6354396818382678,
+        "auc": 0.5646361509039699,
+        "notes": "LACE>=10 predicts readmission; industry baseline used in hospitals"
+      },
+      {
+        "model": "Logistic Regression",
+        "accuracy": 0.6475768708167682,
+        "f1": 0.2643134783065448,
+        "precision": 0.17337375964718854,
+        "recall": 0.5558992487847989,
+        "auc": 0.6525797964127904,
+        "notes": "class_weight=balanced; StandardScaler; max_iter=1000"
+      }
+    ]
+  }
+]
