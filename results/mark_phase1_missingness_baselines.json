@@ -1,0 +1,70 @@
+{
+  "phase": 1,
+  "date": "2026-04-01",
+  "researcher": "Mark Rodrigues",
+  "dataset": "UCI Diabetes 130-US Hospitals",
+  "n_samples": 101766,
+  "n_features": 68,
+  "signal_analysis": {
+    "a1c_tested_readmit_rate": {
+      "False": 0.1142,
+      "True": 0.0985
+    },
+    "glucose_tested_readmit_rate": {
+      "False": 0.1109,
+      "True": 0.1236
+    },
+    "prior_utilization_readmit_rate": {
+      "0": 0.0818,
+      "1": 0.1156,
+      "2-3": 0.1486,
+      "4+": 0.2107
+    }
+  },
+  "models": [
+    {
+      "model": "Linear SVM (workflow compact set)",
+      "feature_set": "8 workflow features",
+      "accuracy": 0.6865480986538273,
+      "f1": 0.2518761726078799,
+      "precision": 0.17164775451494327,
+      "recall": 0.47291941875825627,
+      "auc": 0.6332446625038081,
+      "latency_ms_per_sample": 0.0001,
+      "notes": "Compact non-probabilistic linear margin model."
+    },
+    {
+      "model": "Workflow Triage Rule (threshold=7)",
+      "feature_set": "7 workflow features",
+      "accuracy": 0.7171563329075366,
+      "f1": 0.2479425212279556,
+      "precision": 0.1762630014858841,
+      "recall": 0.4178775869660942,
+      "auc": 0.6213045876598228,
+      "latency_ms_per_sample": 0.0001,
+      "notes": "Hand-built utilization + test-ordering heuristic."
+    },
+    {
+      "model": "BernoulliNB (test-ordering only)",
+      "feature_set": "8 binary workflow features",
+      "accuracy": 0.8884248796305394,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "auc": 0.5393853816540897,
+      "latency_ms_per_sample": 0.0003,
+      "notes": "Asks whether missingness and medication-state signals carry standalone signal."
+    },
+    {
+      "model": "DummyClassifier (stratified)",
+      "feature_set": "None",
+      "accuracy": 0.80018669548983,
+      "f1": 0.10595735326445373,
+      "precision": 0.1057945566286216,
+      "recall": 0.10612065169528842,
+      "auc": 0.4967367069790936,
+      "latency_ms_per_sample": 0.0,
+      "notes": "Sanity-check baseline preserving class imbalance."
+    }
+  ]
+}
