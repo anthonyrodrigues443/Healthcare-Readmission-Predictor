@@ -49,8 +49,8 @@ This project builds a research-grade ML pipeline that:
 <tr>
 <td valign="top" width="38%">
 
-**Anthony's Approach:** Built LACE index proxy, then LogReg on 68 and 23 clinical features. 23-feature clinical LogReg (AUC 0.645) nearly matched all 68 features (AUC 0.648) — domain knowledge compresses feature space 66% with negligible loss.<br><br>
-**Mark's Approach:** Compressed further to 8 workflow proxies (prior utilization, LOS, medication burden, test-ordering flags). Linear SVM on these 8 features hit AUC 0.633 — only 0.012 behind Anthony's 23-feature model. Tested missingness-only BernoulliNB which collapsed to AUC 0.539.
+**Clinical Features:** Built LACE index proxy, then LogReg on 68 and 23 clinical features. 23-feature clinical LogReg (AUC 0.645) nearly matched all 68 features (AUC 0.648) — domain knowledge compresses feature space 66% with negligible loss.<br><br>
+**Workflow Features:** Compressed to 8 workflow proxies (prior utilization, LOS, medication burden, test-ordering flags). Linear SVM hit AUC 0.633 — only 0.012 behind the 23-feature model. Missingness-only BernoulliNB collapsed to AUC 0.539.
 
 </td>
 <td align="center" width="24%">
@@ -77,8 +77,8 @@ This project builds a research-grade ML pipeline that:
 <tr>
 <td valign="top" width="38%">
 
-**Anthony's Approach:** Compared 6 model families (XGBoost, LightGBM, CatBoost, RF, GBM, SVM-RBF) on 68 and 23 features, then tested 5 imbalance strategies on XGBoost. CatBoost won at AUC 0.686, F1 0.283, Recall 0.585.<br><br>
-**Mark's Approach:** Re-ran the top 3 boosters on the compact 8-feature workflow set to test whether better algorithms could rescue underspecified features. CatBoost on workflow-only hit AUC 0.634 — better model family helped, but the feature bottleneck remained.
+**Model Run 1 (Full Features):** Compared 6 model families (XGBoost, LightGBM, CatBoost, RF, GBM, SVM-RBF) on 68 and 23 features, then tested 5 imbalance strategies on XGBoost. CatBoost won at AUC 0.686, F1 0.283, Recall 0.585.<br><br>
+**Model Run 2 (Workflow Features):** Re-ran the top 3 boosters on the compact 8-feature workflow set to test whether better algorithms could rescue underspecified features. CatBoost on workflow-only hit AUC 0.634 — feature bottleneck remained.
 
 </td>
 <td align="center" width="24%">
@@ -105,8 +105,8 @@ This project builds a research-grade ML pipeline that:
 <tr>
 <td valign="top" width="38%">
 
-**Anthony's Approach:** Phase 3 report pending — Mark ran Phase 3 on 2026-04-02.<br><br>
-**Mark's Approach:** Held the top 3 boosters fixed and varied feature sets: workflow-only (8), clinical (23), clinical + transition flags (29), clinical + interactions (38), full engineered matrix (83). CatBoost on full 83 features remained champion at AUC 0.687.
+**Feature Set 1 (Transition Flags):** Varied feature sets from workflow-only (8) to clinical + transition flags (29) to clinical + interactions (38). Grouped discharge/admission semantics gave the clearest lift: +0.010 AUC and +0.054 recall vs clinical-only.<br><br>
+**Feature Set 2 (Full Matrix):** Re-ran the same boosters on the full engineered 83-feature matrix as a control. CatBoost on full 83 features remained champion at AUC 0.687 — raw admin detail still dominates.
 
 </td>
 <td align="center" width="24%">
