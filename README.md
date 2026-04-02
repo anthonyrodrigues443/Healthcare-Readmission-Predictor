@@ -49,8 +49,8 @@ This project builds a research-grade ML pipeline that:
 <tr>
 <td valign="top" width="38%">
 
-**Clinical Features:** Built LACE index proxy, then LogReg on 68 and 23 clinical features. 23-feature clinical LogReg (AUC 0.645) nearly matched all 68 features (AUC 0.648) — domain knowledge compresses feature space 66% with negligible loss.<br><br>
-**Workflow Features:** Compressed to 8 workflow proxies (prior utilization, LOS, medication burden, test-ordering flags). Linear SVM hit AUC 0.633 — only 0.012 behind the 23-feature model. Missingness-only BernoulliNB collapsed to AUC 0.539.
+**EDA Run 1 (Clinical Baseline):** Built LACE proxy + LogReg on 68 and 23 clinical features. 23-feature clinical LogReg (AUC 0.645) nearly matched 68 features (AUC 0.648) — domain knowledge compresses feature space 66% with negligible loss.<br><br>
+**EDA Run 2 (Workflow Compression):** How few features can you use and still get a usable signal? Linear SVM on just 8 workflow proxies (utilization, LOS, meds, test-ordering) hit AUC 0.633. Missingness-only BernoulliNB collapsed to 0.539 — lab ordering patterns alone carry almost nothing.
 
 </td>
 <td align="center" width="24%">
@@ -77,8 +77,8 @@ This project builds a research-grade ML pipeline that:
 <tr>
 <td valign="top" width="38%">
 
-**Model Run 1 (Full Features):** Compared 6 model families (XGBoost, LightGBM, CatBoost, RF, GBM, SVM-RBF) on 68 and 23 features, then tested 5 imbalance strategies on XGBoost. CatBoost won at AUC 0.686, F1 0.283, Recall 0.585.<br><br>
-**Model Run 2 (Workflow Features):** Re-ran the top 3 boosters on the compact 8-feature workflow set to test whether better algorithms could rescue underspecified features. CatBoost on workflow-only hit AUC 0.634 — feature bottleneck remained.
+**Model Run 1 (6-Family Sweep):** Compared 6 model families (XGBoost, LightGBM, CatBoost, RF, GBM, SVM-RBF) on 68 and 23 features + 5 imbalance strategies on XGBoost. CatBoost won at AUC 0.686, F1 0.283, Recall 0.585.<br><br>
+**Model Run 2 (Algorithm Ceiling Test):** Can boosters extract more from those 8 workflow features than Phase 1's Linear SVM did? XGBoost, LightGBM, and CatBoost all tested — best was CatBoost at AUC 0.634 vs SVM's 0.633. Effectively zero gain, proving the ceiling is the features, not the algorithm.
 
 </td>
 <td align="center" width="24%">
