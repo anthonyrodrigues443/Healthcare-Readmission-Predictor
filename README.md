@@ -25,17 +25,17 @@ This project builds a research-grade ML pipeline that:
 
 ## Current Status
 
-**Phase:** 3 of 7 completed
-**Best Model:** CatBoost on full 83-feature matrix (AUC 0.687, F1 0.282)
+**Phase:** 2 of 7 completed
+**Best Model:** CatBoost (68 features, class_weight) — AUC 0.686, F1 0.283, Recall 0.585
 **Target:** AUC > 0.70 (published SOTA: 0.78-0.87)
-**Models Compared:** 26 configurations across 3 phases
+**Models Compared:** 14 configurations across 2 phases
 
 ## Key Findings
 
-1. CatBoost on full 83-feature matrix is champion — AUC 0.687, F1 0.282, +0.042 over Phase 1 LogReg baseline
+1. CatBoost is Phase 2 champion — AUC 0.686, F1 0.283, +0.041 over Phase 1 LogReg baseline
 2. SMOTE destroys performance on this dataset — F1 drops 0.277→0.104; cost-sensitive class weighting is strictly superior
 3. Tree models extract +0.037-0.043 AUC from one-hot features that LogReg misses — nonlinear interactions in admin/demographic categoricals carry real signal
-4. Grouped discharge/admission transition semantics improve compact CatBoost recall 0.544→0.598, but raw `discharge_disposition_id` dominates the full-matrix model
+4. Algorithm upgrades only pay off when features are rich enough — CatBoost on 8 workflow features gained only +0.001 AUC vs +0.041 on 68 features
 5. LACE index flags 61% of all patients for 74% recall — clinically unusable alert volume
 
 ## Iteration Summary
@@ -99,33 +99,6 @@ This project builds a research-grade ML pipeline that:
 
 ---
 
-### Phase 3: Feature Engineering — 2026-04-02
-
-<table>
-<tr>
-<td valign="top" width="38%">
-
-**Feature Set 1 (Transition Flags):** Varied feature sets from workflow-only (8) to clinical + transition flags (29) to clinical + interactions (38). Grouped discharge/admission semantics gave the clearest lift: +0.010 AUC and +0.054 recall vs clinical-only.<br><br>
-**Feature Set 2 (Full Matrix):** Re-ran the same boosters on the full engineered 83-feature matrix as a control. CatBoost on full 83 features remained champion at AUC 0.687 — raw admin detail still dominates.
-
-</td>
-<td align="center" width="24%">
-
-<img src="results/phase3_auc_heatmap.png" width="220">
-
-</td>
-<td valign="top" width="38%">
-
-**Combined Insight:** Grouped transition semantics are the only compact engineering move that clearly helped (+0.010 AUC, +0.054 recall on 29 features). A larger 9-interaction bundle added noise. Raw `discharge_disposition_id` drives two-thirds of the full-matrix lift — semantic grouping captures only one-third.<br><br>
-**Surprise:** The 29-feature transition set beat the full 83-feature model on recall (0.598 vs 0.576) while losing AUC — a real precision/recall tradeoff useful for high-sensitivity triage.<br><br>
-**Research:** Woudneh et al. 2025 (discharge transitions drive readmission) + Hohl et al. 2021 (polypharmacy + LOS increase risk) — transitions confirmed, interactions did not add beyond simpler flags.<br><br>
-**Best Model So Far:** CatBoost (full 83 features) — AUC 0.687, F1 0.282, Recall 0.576
-
-</td>
-</tr>
-</table>
-
----
 
 ## Project Structure
 
