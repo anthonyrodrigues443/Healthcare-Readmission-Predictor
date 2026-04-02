@@ -44,35 +44,86 @@ This project builds a research-grade ML pipeline that:
 <!-- Format: Phase N: Title — Date (one combined entry per phase) -->
 
 ### Phase 1: Domain Research + Dataset + Baseline — 2026-04-01
-**Anthony's Approach:** Built LACE index proxy, then LogReg on 68 and 23 clinical features. 23-feature clinical LogReg (AUC 0.645) nearly matched all 68 features (AUC 0.648) — domain knowledge compresses feature space 66% with negligible loss.
-**Mark's Approach:** Compressed further to 8 workflow proxies (prior utilization, LOS, medication burden, test-ordering flags). Linear SVM on these 8 features hit AUC 0.633 — only 0.012 behind Anthony's 23-feature model, but also tested missingness-only BernoulliNB which collapsed to AUC 0.539.
-**Combined Insight:** Signal is highly compressible but not infinitely so. 23 clinical features → 8 workflow features loses only 0.012 AUC, but pure missingness features alone carry almost no signal. The floor is workflow context (utilization + LOS), not lab ordering patterns in isolation.
-**Surprise:** A1C ordering correlates with *lower* readmission while serum glucose ordering correlates with *higher* — asymmetric ordering behavior reflects chronic management vs acute severity, not a uniform "tested = sicker" pattern.
-**Research:** Based on Mcllhargey et al. 2023 (missing lab patterns in EHRs are informative because they reflect clinician concern), we treated test-ordering as first-class features — this held for glucose but not A1C, suggesting context matters.
-**Key Visual:** <img src="results/roc_curves_baseline.png" width="400">
-**Best Model So Far:** LogReg (68 features, balanced weights) — AUC 0.648, F1 0.260, Recall 0.537
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**Anthony's Approach:** Built LACE index proxy, then LogReg on 68 and 23 clinical features. 23-feature clinical LogReg (AUC 0.645) nearly matched all 68 features (AUC 0.648) — domain knowledge compresses feature space 66% with negligible loss.<br><br>
+**Mark's Approach:** Compressed further to 8 workflow proxies (prior utilization, LOS, medication burden, test-ordering flags). Linear SVM on these 8 features hit AUC 0.633 — only 0.012 behind Anthony's 23-feature model. Tested missingness-only BernoulliNB which collapsed to AUC 0.539.
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/roc_curves_baseline.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Combined Insight:** Signal is highly compressible but not infinitely so. 23 features → 8 workflow features loses only 0.012 AUC, but pure missingness features carry almost no signal. The floor is utilization + LOS, not lab ordering patterns alone.<br><br>
+**Surprise:** A1C ordering correlates with *lower* readmission; glucose ordering with *higher* — asymmetric, not a uniform "tested = sicker" pattern.<br><br>
+**Research:** Mcllhargey et al. 2023 — missing lab patterns reflect clinician concern, so we used test-ordering as first-class features. Held for glucose, not A1C.<br><br>
+**Best Model So Far:** LogReg (68 features, balanced) — AUC 0.648, F1 0.260, Recall 0.537
+
+</td>
+</tr>
+</table>
 
 ---
 
 ### Phase 2: Multi-Model Experiment — 2026-04-02
-**Anthony's Approach:** Compared 6 model families (XGBoost, LightGBM, CatBoost, RF, GBM, SVM-RBF) on 68 and 23 features, then tested 5 imbalance strategies on XGBoost. CatBoost won at AUC 0.686, F1 0.283, Recall 0.585.
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**Anthony's Approach:** Compared 6 model families (XGBoost, LightGBM, CatBoost, RF, GBM, SVM-RBF) on 68 and 23 features, then tested 5 imbalance strategies on XGBoost. CatBoost won at AUC 0.686, F1 0.283, Recall 0.585.<br><br>
 **Mark's Approach:** Re-ran the top 3 boosters on the compact 8-feature workflow set to test whether better algorithms could rescue underspecified features. CatBoost on workflow-only hit AUC 0.634 — better model family helped, but the feature bottleneck remained.
-**Combined Insight:** Model family matters less than feature quality at this stage. CatBoost on 68 features (+0.041 AUC over Phase 1) vs CatBoost on 8 workflow features (+0.001) — the algorithm upgrade only pays off when features are rich enough to exploit.
-**Surprise:** SMOTE was catastrophically bad — F1 dropped from 0.277 to 0.104. Synthetic minority oversampling in a 68-dimensional sparse binary space generates fractional values that don't represent real patients. Cost-sensitive class weighting is strictly superior at 8:1 imbalance.
-**Research:** Based on Rajkomar et al. 2018 (gradient-boosted trees dominate structured EHR prediction) and Kaggle community findings (SMOTE consistently hurts at moderate imbalance with categorical EHR data), tree ensembles with class weighting were prioritized — both held up exactly.
-**Key Visual:** <img src="results/phase2_imbalance_strategies.png" width="400">
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase2_imbalance_strategies.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Combined Insight:** Model family matters less than feature quality. CatBoost on 68 features gained +0.041 AUC over Phase 1; on 8 workflow features it gained only +0.001. The algorithm upgrade only pays off when features are rich enough to exploit.<br><br>
+**Surprise:** SMOTE was catastrophically bad — F1 dropped 0.277→0.104. Synthetic oversampling in a 68-dimensional sparse binary space generates fractional values that don't represent real patients.<br><br>
+**Research:** Rajkomar et al. 2018 (boosted trees dominate structured EHR tasks) + Kaggle community (SMOTE hurts at 8:1 categorical imbalance) — both held exactly.<br><br>
 **Best Model So Far:** CatBoost (68 features, class_weight) — AUC 0.686, F1 0.283, Recall 0.585
+
+</td>
+</tr>
+</table>
 
 ---
 
 ### Phase 3: Feature Engineering — 2026-04-02
-**Anthony's Approach:** (Phase 3 report pending — Mark ran Phase 3 on 2026-04-02)
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**Anthony's Approach:** Phase 3 report pending — Mark ran Phase 3 on 2026-04-02.<br><br>
 **Mark's Approach:** Held the top 3 boosters fixed and varied feature sets: workflow-only (8), clinical (23), clinical + transition flags (29), clinical + interactions (38), full engineered matrix (83). CatBoost on full 83 features remained champion at AUC 0.687.
-**Combined Insight:** Grouped discharge/admission transition semantics are the only compact feature engineering move that clearly helped (+0.010 AUC, +0.054 recall on the 29-feature set). A larger 9-interaction bundle added noise, not signal. Raw `discharge_disposition_id` alone drives two-thirds of the full-matrix lift — semantic grouping captures only one-third.
-**Surprise:** The 29-feature transition set beat the full 83-feature model on recall (0.598 vs 0.576) while losing AUC — a genuine precision/recall tradeoff that's clinically meaningful for high-sensitivity triage use cases.
-**Research:** Based on Woudneh et al. 2025 (discharge transitions are significant readmission drivers in elderly inpatients) and Hohl et al. 2021 (polypharmacy + LOS increase 30-day readmission risk), grouped transition flags and utilization×burden interactions were engineered — transitions confirmed, interactions did not add beyond the simpler flags.
-**Key Visual:** <img src="results/phase3_auc_heatmap.png" width="400">
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase3_auc_heatmap.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Combined Insight:** Grouped transition semantics are the only compact engineering move that clearly helped (+0.010 AUC, +0.054 recall on 29 features). A larger 9-interaction bundle added noise. Raw `discharge_disposition_id` drives two-thirds of the full-matrix lift — semantic grouping captures only one-third.<br><br>
+**Surprise:** The 29-feature transition set beat the full 83-feature model on recall (0.598 vs 0.576) while losing AUC — a real precision/recall tradeoff useful for high-sensitivity triage.<br><br>
+**Research:** Woudneh et al. 2025 (discharge transitions drive readmission) + Hohl et al. 2021 (polypharmacy + LOS increase risk) — transitions confirmed, interactions did not add beyond simpler flags.<br><br>
 **Best Model So Far:** CatBoost (full 83 features) — AUC 0.687, F1 0.282, Recall 0.576
+
+</td>
+</tr>
+</table>
 
 ---
 
