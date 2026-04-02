@@ -75,7 +75,18 @@ except ImportError:
 
 def load_data():
     """Load processed dataset and split."""
-    df = pd.read_csv('data/processed/readmission_processed.csv')
+    processed_path = Path('data/processed/readmission_processed.csv')
+    if processed_path.exists():
+        df = pd.read_csv(processed_path)
+    else:
+        from src.data_pipeline import clean_and_engineer, download_dataset
+
+        raw_df = download_dataset()
+        df = clean_and_engineer(raw_df)
+        processed_path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(processed_path, index=False)
+        print(f"Generated processed dataset at {processed_path}")
+
     target = 'readmitted_binary'
     X = df.drop(columns=[target])
     y = df[target]
@@ -153,7 +164,7 @@ def run_experiment_1_six_models(X_train, X_test, y_train, y_test):
     # 1. Random Forest
     models['Random Forest'] = RandomForestClassifier(
         n_estimators=300, max_depth=12, min_samples_leaf=20,
-        class_weight='balanced', random_state=42, n_jobs=-1,
+        class_weight='balanced', random_state=42, n_jobs=1,
     )
 
     # 2. XGBoost
@@ -223,7 +234,7 @@ def run_experiment_1_six_models(X_train, X_test, y_train, y_test):
 
         results.append(res)
         probs[name] = y_prob
-        print(f"  → AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f} | {train_time:.1f}s")
+        print(f"  -> AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f} | {train_time:.1f}s")
 
     # Print table
     results_df = pd.DataFrame(results).sort_values('auc', ascending=False)
@@ -277,7 +288,7 @@ def run_experiment_2_clinical_features(X_train, X_test, y_train, y_test):
         train_time = time.perf_counter() - start
         res, _ = evaluate_model(model, X_te_clin, y_test, name, train_time)
         results.append(res)
-        print(f"  → AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
+        print(f"  -> AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
 
     results_df = pd.DataFrame(results).sort_values('auc', ascending=False)
     print("\n  === EXPERIMENT 2.2 RESULTS (Clinical Features) ===")
@@ -310,7 +321,7 @@ def run_experiment_3_imbalance_strategies(X_train, X_test, y_train, y_test):
     train_time = time.perf_counter() - start
     res, _ = evaluate_model(xgb_none, X_test, y_test, 'XGB (no handling)', train_time)
     results.append(res)
-    print(f"  → AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
+    print(f"  -> AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
 
     # Strategy 2: scale_pos_weight
     print("\n  Strategy 2: scale_pos_weight...")
@@ -324,14 +335,14 @@ def run_experiment_3_imbalance_strategies(X_train, X_test, y_train, y_test):
     train_time = time.perf_counter() - start
     res, _ = evaluate_model(xgb_weight, X_test, y_test, 'XGB (class_weight)', train_time)
     results.append(res)
-    print(f"  → AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
+    print(f"  -> AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
 
     # Strategy 3: SMOTE
     if HAS_IMBLEARN:
         print("\n  Strategy 3: SMOTE oversampling...")
         smote = SMOTE(random_state=42, k_neighbors=5)
         X_sm, y_sm = smote.fit_resample(X_train, y_train)
-        print(f"  SMOTE: {len(X_train)} → {len(X_sm)} samples")
+        print(f"  SMOTE: {len(X_train)} -> {len(X_sm)} samples")
         xgb_smote = XGBClassifier(
             n_estimators=300, max_depth=6, learning_rate=0.1,
             random_state=42, eval_metric='logloss', verbosity=0,
@@ -341,7 +352,7 @@ def run_experiment_3_imbalance_strategies(X_train, X_test, y_train, y_test):
         train_time = time.perf_counter() - start
         res, _ = evaluate_model(xgb_smote, X_test, y_test, 'XGB (SMOTE)', train_time)
         results.append(res)
-        print(f"  → AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
+        print(f"  -> AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
     else:
         print("  imbalanced-learn not available, skipping SMOTE")
 
@@ -372,7 +383,7 @@ def run_experiment_3_imbalance_strategies(X_train, X_test, y_train, y_test):
         'train_time_s': None,
     }
     results.append(res)
-    print(f"  → Best threshold={best_thresh:.2f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f} | Precision={res['precision']:.3f}")
+    print(f"  -> Best threshold={best_thresh:.2f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f} | Precision={res['precision']:.3f}")
 
     # Strategy 5: Cost-sensitive with higher weight
     print("\n  Strategy 5: Aggressive cost-sensitive (2x weight)...")
@@ -386,7 +397,7 @@ def run_experiment_3_imbalance_strategies(X_train, X_test, y_train, y_test):
     train_time = time.perf_counter() - start
     res, _ = evaluate_model(xgb_heavy, X_test, y_test, 'XGB (2x weight)', train_time)
     results.append(res)
-    print(f"  → AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
+    print(f"  -> AUC={res['auc']:.4f} | F1={res['f1']:.3f} | Recall={res['recall']:.3f}")
 
     results_df = pd.DataFrame(results).sort_values('f1', ascending=False)
     print("\n  === EXPERIMENT 2.3 RESULTS (sorted by F1) ===")
@@ -427,8 +438,8 @@ def run_experiment_4_cross_validation(X_train, y_train):
     results = []
     for name, model in cv_models.items():
         print(f"\n  5-fold CV for {name}...")
-        scores = cross_val_score(model, X_train, y_train, cv=cv, scoring='roc_auc', n_jobs=-1)
-        f1_scores = cross_val_score(model, X_train, y_train, cv=cv, scoring='f1', n_jobs=-1)
+        scores = cross_val_score(model, X_train, y_train, cv=cv, scoring='roc_auc', n_jobs=1)
+        f1_scores = cross_val_score(model, X_train, y_train, cv=cv, scoring='f1', n_jobs=1)
         res = {
             'model': name,
             'auc_mean': scores.mean(),
@@ -438,9 +449,9 @@ def run_experiment_4_cross_validation(X_train, y_train):
             'folds': scores.tolist(),
         }
         results.append(res)
-        print(f"  → AUC: {scores.mean():.4f} ± {scores.std():.4f}")
-        print(f"  → F1:  {f1_scores.mean():.4f} ± {f1_scores.std():.4f}")
-        print(f"  → Folds: {[f'{s:.4f}' for s in scores]}")
+        print(f"  -> AUC: {scores.mean():.4f} +/- {scores.std():.4f}")
+        print(f"  -> F1:  {f1_scores.mean():.4f} +/- {f1_scores.std():.4f}")
+        print(f"  -> Folds: {[f'{s:.4f}' for s in scores]}")
 
     return results
 
@@ -599,10 +610,11 @@ def main():
     print("PHASE 2 SUMMARY")
     print("=" * 70)
     all_results = exp1_results + exp2_results
-    best = max(all_results, key=lambda x: x['auc'])
+    # Pick the clinically useful champion: F1 first, then AUC.
+    best = max(all_results, key=lambda x: (x['f1'], x['auc']))
     baseline_auc = 0.645  # Phase 1 LogReg baseline
     print(f"\n  Champion: {best['model']}")
-    print(f"  AUC: {best['auc']:.4f} (Δ vs Phase 1 baseline: +{best['auc'] - baseline_auc:.4f})")
+    print(f"  AUC: {best['auc']:.4f} (delta vs Phase 1 baseline: +{best['auc'] - baseline_auc:.4f})")
     print(f"  F1: {best['f1']:.3f} | Precision: {best['precision']:.3f} | Recall: {best['recall']:.3f}")
 
     # Find worst model
@@ -617,7 +629,7 @@ def main():
     if exp4_results:
         print("\n  Cross-Validation Summary:")
         for cv in exp4_results:
-            print(f"    {cv['model']}: AUC {cv['auc_mean']:.4f} ± {cv['auc_std']:.4f}")
+            print(f"    {cv['model']}: AUC {cv['auc_mean']:.4f} +/- {cv['auc_std']:.4f}")
 
     print("\n  DONE — Phase 2 complete.")
 
