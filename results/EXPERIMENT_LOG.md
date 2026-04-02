@@ -28,3 +28,18 @@ Master record of all experiments. Updated every session.
 
 ---
 Append new phases below as research progresses.
+
+## Phase 3 - 2026-04-02 (Mark)
+
+| # | Approach | AUC | F1 | Precision | Recall | Delta vs Anthony CatBoost clinical | Verdict |
+|---|----------|-----|----|-----------|--------|-----------------------------------|---------|
+| 3.1 | CatBoost + full_83 | 0.687 | 0.282 | 0.187 | 0.576 | +0.038 | Leader |
+| 3.2 | LightGBM + full_83 | 0.674 | 0.277 | 0.188 | 0.527 | +0.025 | Useful lift |
+| 3.3 | XGBoost + full_83 | 0.674 | 0.274 | 0.189 | 0.499 | +0.025 | Useful lift |
+| 3.4 | CatBoost + clinical_plus_interactions_38 | 0.661 | 0.265 | 0.171 | 0.581 | +0.012 | Useful lift |
+| 3.5 | CatBoost + clinical_plus_transition_29 | 0.659 | 0.268 | 0.173 | 0.598 | +0.010 | Useful lift |
+| 3.6 | LightGBM + clinical_plus_transition_29 | 0.652 | 0.260 | 0.171 | 0.540 | +0.003 | Useful lift |
+
+**Champion after Mark's Phase 3:** CatBoost + full_83 (AUC=0.687, F1=0.282)
+**Combined insight:** Grouped transition/discharge semantics recover roughly one-third of the full-matrix CatBoost lift, and they actually produce the highest recall among the compact feature sets, but raw discharge detail still wins on overall discrimination.
+**Key finding:** The best manual feature engineering move was six semantic transition flags. The larger interaction bundle mostly added complexity without adding performance.
