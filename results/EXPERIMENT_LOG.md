@@ -62,3 +62,17 @@ Append new phases below as research progresses.
 **Cross-validation:** AUC=0.6766 ± 0.0058
 **Calibration:** Brier raw=0.2112, isotonic=0.0948
 **Key finding:** Optuna tuning gained +0.004 AUC over default CatBoost. The most important hyperparameter is random_strength. At recall≥75% operating point, the model flags 100% of patients.
+## Phase 5 - 2026-04-03 (Mark)
+
+| # | Approach | AUC | F1 | Precision | Recall | Low-Util Recall | Delta vs Anthony tuned CatBoost | Verdict |
+|---|----------|-----|----|-----------|--------|-----------------|---------------------------------|---------|
+| 5.1 | Tuned CatBoost (`full_83`) | 0.687 | 0.289 | 0.197 | 0.539 | 0.215 | -0.004 | Best raw AUC |
+| 5.2 | Weighted CatBoost (`full_83`, low-util positives x3) | 0.574 | 0.225 | 0.154 | 0.422 | 0.561 | -0.118 | Recall rescue, discrimination collapse |
+| 5.3 | Hybrid router (`clinical_23`) | 0.664 | 0.273 | 0.195 | 0.454 | 0.000 | -0.027 | Threshold trap |
+| 5.4 | Hybrid router (`transition_29`) | 0.673 | 0.275 | 0.186 | 0.524 | 0.205 | -0.018 | Better routing signal |
+| 5.5 | Hybrid + subgroup thresholds (`clinical_23`) | 0.664 | 0.255 | 0.158 | 0.660 | 0.520 | -0.027 | Recovers first-timer recall, weak precision |
+| 5.6 | Hybrid + subgroup thresholds (`transition_29`) | 0.673 | 0.263 | 0.164 | 0.656 | 0.509 | -0.018 | Best Phase 5 tradeoff |
+
+**Champion after Mark's Phase 5:** Hybrid + subgroup thresholds (`transition_29`) on the phase question (AUC=0.673, F1=0.263, low-util recall=0.509).
+**Combined insight:** Anthony's tuned CatBoost is still the cleanest global ranker, but Phase 5 shows the blind spot is not solvable with brute-force weighting alone. The specialist only helps when routing includes its own threshold.
+**Key finding:** Reweighting nearly tripled first-timer recall but destroyed AUC. A transition-aware specialist recovered almost the same first-timer recall while preserving roughly `+0.10` AUC over blunt weighting.
