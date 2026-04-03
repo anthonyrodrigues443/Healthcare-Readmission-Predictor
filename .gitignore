@@ -12,3 +12,4 @@ dist/
 build/
 .ipynb_checkpoints/
 *.log
+catboost_info/
