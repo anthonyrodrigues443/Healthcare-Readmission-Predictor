@@ -43,3 +43,22 @@ Append new phases below as research progresses.
 **Champion after Mark's Phase 3:** CatBoost + full_83 (AUC=0.687, F1=0.282)
 **Combined insight:** Grouped transition/discharge semantics recover roughly one-third of the full-matrix CatBoost lift, and they actually produce the highest recall among the compact feature sets, but raw discharge detail still wins on overall discrimination.
 **Key finding:** The best manual feature engineering move was six semantic transition flags. The larger interaction bundle mostly added complexity without adding performance.
+
+
+## Phase 4 - 2026-04-03 (Anthony)
+
+| # | Approach | AUC | F1 | Precision | Recall | Delta vs Phase 3 Champion | Verdict |
+|---|----------|-----|----|-----------|--------|---------------------------|---------|
+| 4.1 | CatBoost default (Phase 3) | 0.687 | 0.285 | 0.186 | 0.604 | -0.000 | Baseline |
+| 4.2 | CatBoost Optuna-tuned (80 trials) | 0.691 | 0.287 | 0.188 | 0.600 | +0.004 | Improved |
+| 4.3 | Tuned CatBoost @ f1_optimal (t=0.520) | — | 0.291 | 0.199 | 0.539 | — | Operating point |
+| 4.3 | Tuned CatBoost @ recall_75 (t=0.020) | — | 0.201 | 0.112 | 1.000 | — | Operating point |
+| 4.3 | Tuned CatBoost @ recall_80 (t=0.020) | — | 0.201 | 0.112 | 1.000 | — | Operating point |
+| 4.3 | Tuned CatBoost @ recall_85 (t=0.020) | — | 0.201 | 0.112 | 1.000 | — | Operating point |
+
+**Most important hyperparameter:** random_strength (fANOVA importance=0.874)
+
+**Champion after Phase 4:** Optuna-tuned CatBoost (AUC=0.6912, F1=0.287)
+**Cross-validation:** AUC=0.6766 ± 0.0058
+**Calibration:** Brier raw=0.2112, isotonic=0.0948
+**Key finding:** Optuna tuning gained +0.004 AUC over default CatBoost. The most important hyperparameter is random_strength. At recall≥75% operating point, the model flags 100% of patients.
