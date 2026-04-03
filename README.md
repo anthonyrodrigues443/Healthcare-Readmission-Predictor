@@ -25,18 +25,18 @@ This project builds a research-grade ML pipeline that:
 
 ## Current Status
 
-**Phase:** 2 of 7 completed
-**Best Model:** CatBoost (68 features, class_weight) — AUC 0.686, F1 0.283, Recall 0.585
+**Phase:** 4 of 7 completed
+**Best Model:** CatBoost (Optuna-tuned, full_83 features) — AUC 0.691, F1 0.287, Recall 0.600
 **Target:** AUC > 0.70 (published SOTA: 0.78-0.87)
-**Models Compared:** 14 configurations across 2 phases
+**Models Compared:** ~32 configurations across 4 phases
 
 ## Key Findings
 
-1. CatBoost is Phase 2 champion — AUC 0.686, F1 0.283, +0.041 over Phase 1 LogReg baseline
+1. CatBoost (Optuna-tuned, full_83) is Phase 4 champion — AUC 0.691, F1 0.287; tuning adds only +0.004 over default, confirming the ceiling is in features not model architecture
 2. SMOTE destroys performance on this dataset — F1 drops 0.277→0.104; cost-sensitive class weighting is strictly superior
-3. Tree models extract +0.037-0.043 AUC from one-hot features that LogReg misses — nonlinear interactions in admin/demographic categoricals carry real signal
-4. Algorithm upgrades only pay off when features are rich enough — CatBoost on 8 workflow features gained only +0.001 AUC vs +0.041 on 68 features
-5. LACE index flags 61% of all patients for 74% recall — clinically unusable alert volume
+3. Algorithm upgrades only pay off when features are rich enough — CatBoost on 8 workflow features gained only +0.001 AUC vs +0.041 on 68 features; grouped transition semantics recovered only 1/3 of the full-matrix lift
+4. "First-timer blind spot": model catches 92% of frequent flyers (prior util 4+) but only 30% of first-time readmissions — it learns "was readmitted before → will be readmitted again", not clinical risk
+5. Raw CatBoost probabilities are 55% miscalibrated (Brier 0.211 → 0.095 after isotonic calibration) — clinical deployment must include post-hoc calibration
 
 ## Iteration Summary
 
@@ -92,6 +92,61 @@ This project builds a research-grade ML pipeline that:
 **Surprise:** SMOTE was catastrophically bad — F1 dropped 0.277→0.104. Synthetic oversampling in a 68-dimensional sparse binary space generates fractional values that don't represent real patients.<br><br>
 **Research:** Rajkomar et al. 2018 (boosted trees dominate structured EHR tasks) + Kaggle community (SMOTE hurts at 8:1 categorical imbalance) — both held exactly.<br><br>
 **Best Model So Far:** CatBoost (68 features, class_weight) — AUC 0.686, F1 0.283, Recall 0.585
+
+</td>
+</tr>
+</table>
+
+---
+
+### Phase 3: Feature Engineering — 2026-04-02
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**Transition Features:** Added six semantic discharge/admission flags (e.g. `discharge_post_acute`, `admission_emergency`) to the 23-feature clinical base. CatBoost improved from AUC 0.649 → 0.659 with recall climbing 0.544 → 0.598 — the cleanest compact gain of Phase 3.<br><br>
+**Interaction Features:** Added nine utilization × medication-burden interactions (`meds_per_day`, `utilization_x_polypharmacy`, `los_x_med_burden`, etc.) on top of the transition set. CatBoost gained only +0.002 AUC over the simpler transition set and actually lost recall (0.598 → 0.581) — more hand-built complexity created noise.
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase3_model_comparison.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Combined Insight:** Transition semantics are the only compact feature engineering move that clearly helped (+0.010 AUC, +0.054 recall on 6 extra features). But grouped flags recovered only ~1/3 of the full-matrix lift — the rest lives in fine-grained `discharge_disposition_id` detail that semantic grouping loses.<br><br>
+**Surprise:** More hand-built interactions hurt. The 38-feature set underperformed the simpler 29-feature transition set on recall — interaction noise outweighed any signal gain on a 101K-sample imbalanced dataset.<br><br>
+**Research:** Woudneh et al. 2025 + Hohl et al. 2021 — discharge protocols and polypharmacy drive readmission risk, so we tested grouped transition flags and medication-burden ratios. Transition semantics held; interaction ratios did not.<br><br>
+**Best Model So Far:** CatBoost (default, full_83) — AUC 0.687, F1 0.282, Recall 0.576
+
+</td>
+</tr>
+</table>
+
+---
+
+### Phase 4: Hyperparameter Tuning + Error Analysis — 2026-04-03
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**Tuning Run 1:** Optuna TPE (80 trials) on CatBoost with research-informed search ranges — depth 4-10, lr 0.005-0.15 log scale, random_strength 0.1-10 log scale. Best params: depth=8, lr=0.006, random_strength=0.185. AUC improved 0.687 → 0.691 (+0.004). fANOVA showed `random_strength` accounts for 87.4% of hyperparameter importance — controlling split randomness matters 10× more than depth or learning rate for imbalanced EHR data.
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase4_subgroup_analysis.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Combined Insight:** Tuning confirms the performance ceiling is in features, not model architecture. The +0.004 AUC gain is real but marginal; default CatBoost is already near-optimal. The bigger story is the error analysis: subgroup decomposition revealed a structural bias that hyperparameter search cannot fix.<br><br>
+**Surprise:** The "first-timer blind spot" — the model catches 92% of patients with prior hospitalizations (prior_util 4+) but only 30% of first-time readmissions (prior_util 0). It learns "was readmitted before → will be readmitted again", not clinical risk. 70% of all missed readmissions are first-time patients.<br><br>
+**Research:** PMC 2025 systematic review (AUROC 0.62-0.82 published range) + FDA clinical AI guidance — threshold optimization and probability calibration are critical for deployment. Raw Brier of 0.211 confirmed: isotonic calibration dropped it to 0.095 (55% reduction).<br><br>
+**Best Model So Far:** CatBoost (Optuna-tuned, full_83) — AUC 0.691, F1 0.287, Recall 0.600
 
 </td>
 </tr>
