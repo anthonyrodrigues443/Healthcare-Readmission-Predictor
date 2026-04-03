@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+from sklearn.frozen import FrozenEstimator
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
@@ -71,11 +72,13 @@ RANDOM_STATE = 42
 def ensure_dirs() -> None:
     RESULTS_DIR.mkdir(exist_ok=True)
     REPORTS_DIR.mkdir(exist_ok=True)
+    PROCESSED_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def load_dataset() -> pd.DataFrame:
     if PROCESSED_PATH.exists():
         return pd.read_csv(PROCESSED_PATH)
+    PROCESSED_PATH.parent.mkdir(parents=True, exist_ok=True)
     raw_df = download_dataset()
     df = clean_and_engineer(raw_df)
     df.to_csv(PROCESSED_PATH, index=False)
@@ -291,8 +294,8 @@ def optimize_thresholds(y_test, y_prob):
 # Experiment 4.4: Calibration analysis
 # ---------------------------------------------------------------------------
 
-def calibration_analysis(model, X_train, y_train, X_test, y_test):
-    """Assess and improve probability calibration."""
+def calibration_analysis(model, X_calibration, y_calibration, X_test, y_test):
+    """Assess and improve probability calibration on a held-out calibration split."""
     print(f"\n{'='*72}")
     print("EXPERIMENT 4.4: PROBABILITY CALIBRATION")
     print(f"{'='*72}")
@@ -301,14 +304,20 @@ def calibration_analysis(model, X_train, y_train, X_test, y_test):
     brier_raw = brier_score_loss(y_test, y_prob_raw)
 
     # Isotonic calibration (n > 1000, recommended per literature)
-    calibrated_iso = CalibratedClassifierCV(model, method="isotonic", cv="prefit")
-    calibrated_iso.fit(X_train, y_train)
+    calibrated_iso = CalibratedClassifierCV(
+        estimator=FrozenEstimator(model),
+        method="isotonic",
+    )
+    calibrated_iso.fit(X_calibration, y_calibration)
     y_prob_iso = calibrated_iso.predict_proba(X_test)[:, 1]
     brier_iso = brier_score_loss(y_test, y_prob_iso)
 
     # Platt scaling
-    calibrated_platt = CalibratedClassifierCV(model, method="sigmoid", cv="prefit")
-    calibrated_platt.fit(X_train, y_train)
+    calibrated_platt = CalibratedClassifierCV(
+        estimator=FrozenEstimator(model),
+        method="sigmoid",
+    )
+    calibrated_platt.fit(X_calibration, y_calibration)
     y_prob_platt = calibrated_platt.predict_proba(X_test)[:, 1]
     brier_platt = brier_score_loss(y_test, y_prob_platt)
 
@@ -892,8 +901,9 @@ def main():
 
     # --- Experiment 4.4: Calibration ---
     # Use trainval for calibration fitting, test for evaluation
+    calibration_model = train_tuned_model(best_params, X_train, y_train, X_val, y_val)
     calibration_results, y_prob_raw, y_prob_iso, y_prob_platt = calibration_analysis(
-        tuned_model, X_trainval, y_trainval, X_test, y_test
+        calibration_model, X_val, y_val, X_test, y_test
     )
 
     # --- Experiment 4.5: Error analysis ---
