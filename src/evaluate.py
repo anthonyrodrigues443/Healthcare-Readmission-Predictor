@@ -31,15 +31,11 @@ from sklearn.metrics import (
     precision_recall_curve,
     precision_score,
     recall_score,
-    roc_auc_score,
     roc_curve,
 )
-from sklearn.model_selection import train_test_split
 
-from src.data_pipeline import clean_and_engineer, download_dataset
-from src.phase3_feature_engineering import add_phase3_features, get_feature_sets
+from src.production_pipeline import json_safe_float, load_modeling_frame, make_production_splits, safe_auc
 
-RANDOM_STATE = 42
 RESULTS_DIR = Path("results")
 
 
@@ -53,17 +49,12 @@ def evaluate_model(model_dir: Path = Path("models")) -> dict:
     feature_cols = joblib.load(model_dir / "feature_columns.joblib")
     threshold = manifest["optimal_threshold"]
 
-    # Reproduce test set with same split
-    raw_df = download_dataset()
-    df = clean_and_engineer(raw_df)
-    df = add_phase3_features(df)
-    target = "readmitted_binary"
-
+    # Reproduce the same split schema as training.
+    df, _, target = load_modeling_frame()
     X = df[feature_cols]
     y = df[target]
-    _, X_test, _, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=RANDOM_STATE, stratify=y,
-    )
+    splits = make_production_splits(X, y)
+    X_test, y_test = splits["test"]
 
     probs = calibrator.predict_proba(X_test)[:, 1]
     preds = (probs >= threshold).astype(int)
@@ -74,7 +65,7 @@ def evaluate_model(model_dir: Path = Path("models")) -> dict:
         "f1": float(f1_score(y_test, preds)),
         "precision": float(precision_score(y_test, preds)),
         "recall": float(recall_score(y_test, preds)),
-        "auc": float(roc_auc_score(y_test, probs)),
+        "auc": json_safe_float(safe_auc(y_test, probs)),
         "avg_precision": float(average_precision_score(y_test, probs)),
         "brier": float(brier_score_loss(y_test, probs)),
         "threshold": threshold,
@@ -108,7 +99,7 @@ def evaluate_model(model_dir: Path = Path("models")) -> dict:
             "n": n,
             "readmit_rate": round(float(sg_y.mean()), 4),
             "recall": round(float(recall_score(sg_y, sg_preds, zero_division=0)), 4),
-            "auc": round(float(roc_auc_score(sg_y, sg_probs)), 4),
+            "auc": json_safe_float(safe_auc(sg_y, sg_probs)),
             "flagged_rate": round(float(sg_preds.mean()), 4),
         }
 
@@ -149,7 +140,11 @@ def evaluate_model(model_dir: Path = Path("models")) -> dict:
     print(f"\n{'Subgroup Analysis':}")
     print(f"  {'Group':<20s} {'N':>6s} {'Rate':>6s} {'Recall':>7s} {'AUC':>6s}")
     for name, sg in subgroups.items():
-        print(f"  {name:<20s} {sg['n']:>6d} {sg['readmit_rate']:>6.3f} {sg['recall']:>7.3f} {sg['auc']:>6.3f}")
+        auc_display = "N/A" if sg["auc"] is None else f"{sg['auc']:.3f}"
+        print(
+            f"  {name:<20s} {sg['n']:>6d} {sg['readmit_rate']:>6.3f} "
+            f"{sg['recall']:>7.3f} {auc_display:>6s}"
+        )
 
     return eval_results
 
@@ -213,11 +208,12 @@ def _plot_subgroups(subgroups):
     if not subgroups:
         return
     sg_df = pd.DataFrame(subgroups).T
+    sg_df["auc_numeric"] = pd.to_numeric(sg_df["auc"], errors="coerce")
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     sg_df["recall"].sort_values().plot.barh(ax=axes[0], color="#1f77b4")
     axes[0].set_title("Recall by Subgroup")
     axes[0].set_xlim(0, 1)
-    sg_df["auc"].sort_values().plot.barh(ax=axes[1], color="#d95f02")
+    sg_df["auc_numeric"].dropna().sort_values().plot.barh(ax=axes[1], color="#d95f02")
     axes[1].set_title("AUC by Subgroup")
     axes[1].set_xlim(0.5, 0.8)
     plt.suptitle("Subgroup Performance — Production Model", fontsize=13)

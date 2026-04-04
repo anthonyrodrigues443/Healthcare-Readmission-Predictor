@@ -1,0 +1,138 @@
+{
+  "phase": 7,
+  "date": "2026-04-05",
+  "objective": "Test whether native categorical handling beats the one-hot full_83 champion on the same deterministic split.",
+  "baseline": {
+    "model": "One-hot CatBoost (full_83)",
+    "accuracy": 0.7089024270413677,
+    "f1": 0.2858864649873448,
+    "precision": 0.1968138068370395,
+    "recall": 0.5222369000440334,
+    "auc": 0.6834254997133551,
+    "avg_precision": 0.21872200541586376,
+    "brier": 0.09396123222704958,
+    "threshold": 0.14763231197771587,
+    "low_util_recall": 0.18596881959910913,
+    "high_util_recall": 0.9120370370370371,
+    "flagged_rate": 0.2960597425567456,
+    "train_time_seconds": 6.97
+  },
+  "candidate": {
+    "model": "Native-cat CatBoost (raw+engineered)",
+    "accuracy": 0.7622580328191019,
+    "f1": 0.29326712428800933,
+    "precision": 0.2194055944055944,
+    "recall": 0.4420959929546455,
+    "auc": 0.6944666665351726,
+    "avg_precision": 0.23387961739998112,
+    "brier": 0.09331080008676328,
+    "threshold": 0.1624365482233502,
+    "low_util_recall": 0.15367483296213807,
+    "high_util_recall": 0.8842592592592593,
+    "flagged_rate": 0.22482067406897907,
+    "train_time_seconds": 89.43
+  },
+  "bootstrap_auc_delta": {
+    "n_bootstrap": 400,
+    "mean_delta_auc": 0.011030685939022395,
+    "ci_lower": 0.006993355177368104,
+    "ci_upper": 0.015464639166414428,
+    "probability_candidate_beats_baseline": 1.0
+  },
+  "native_feature_count": 76,
+  "native_categorical_count": 39,
+  "native_top_features": [
+    {
+      "feature": "discharge_disposition_id",
+      "importance": 14.0389
+    },
+    {
+      "feature": "acute_prior_load",
+      "importance": 7.3746
+    },
+    {
+      "feature": "diag_1",
+      "importance": 6.7885
+    },
+    {
+      "feature": "diag_1_group",
+      "importance": 6.0274
+    },
+    {
+      "feature": "diag_3",
+      "importance": 5.2031
+    },
+    {
+      "feature": "diag_2",
+      "importance": 4.4255
+    },
+    {
+      "feature": "number_inpatient",
+      "importance": 3.8755
+    },
+    {
+      "feature": "insulin",
+      "importance": 3.5941
+    },
+    {
+      "feature": "number_diagnoses",
+      "importance": 3.1064
+    },
+    {
+      "feature": "meds_per_day",
+      "importance": 2.559
+    },
+    {
+      "feature": "diag_2_group",
+      "importance": 2.3944
+    },
+    {
+      "feature": "n_medications_active",
+      "importance": 2.3874
+    },
+    {
+      "feature": "lab_procedure_ratio",
+      "importance": 2.3436
+    },
+    {
+      "feature": "time_in_hospital",
+      "importance": 2.0696
+    },
+    {
+      "feature": "los_x_med_burden",
+      "importance": 1.9093
+    }
+  ],
+  "comparison_table": [
+    {
+      "model": "One-hot CatBoost (full_83)",
+      "accuracy": 0.7089024270413677,
+      "f1": 0.2858864649873448,
+      "precision": 0.1968138068370395,
+      "recall": 0.5222369000440334,
+      "auc": 0.6834254997133551,
+      "avg_precision": 0.21872200541586376,
+      "brier": 0.09396123222704958,
+      "threshold": 0.14763231197771587,
+      "low_util_recall": 0.18596881959910913,
+      "high_util_recall": 0.9120370370370371,
+      "flagged_rate": 0.2960597425567456,
+      "train_time_seconds": 6.97
+    },
+    {
+      "model": "Native-cat CatBoost (raw+engineered)",
+      "accuracy": 0.7622580328191019,
+      "f1": 0.29326712428800933,
+      "precision": 0.2194055944055944,
+      "recall": 0.4420959929546455,
+      "auc": 0.6944666665351726,
+      "avg_precision": 0.23387961739998112,
+      "brier": 0.09331080008676328,
+      "threshold": 0.1624365482233502,
+      "low_util_recall": 0.15367483296213807,
+      "high_util_recall": 0.8842592592592593,
+      "flagged_rate": 0.22482067406897907,
+      "train_time_seconds": 89.43
+    }
+  ]
+}

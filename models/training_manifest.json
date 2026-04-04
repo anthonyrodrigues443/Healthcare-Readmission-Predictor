@@ -9,37 +9,59 @@
     "border_count": 64,
     "min_data_in_leaf": 9
   },
-  "n_iterations": 932,
+  "n_iterations": 787,
   "feature_count": 83,
-  "optimal_threshold": 0.1460446247464503,
-  "train_time_seconds": 8.9,
-  "latency_ms_per_sample": 0.0101,
+  "optimal_threshold": 0.14763231197771587,
+  "train_time_seconds": 8.0,
+  "latency_ms_per_sample": 0.0099,
+  "split_metadata": {
+    "random_state": 42,
+    "schema": {
+      "train": 0.6,
+      "early_stop": 0.1,
+      "calibration": 0.1,
+      "test": 0.2
+    },
+    "counts": {
+      "train": 61059,
+      "early_stop": 10176,
+      "calibration": 10177,
+      "test": 20354
+    },
+    "positive_rate": {
+      "train": 0.111613,
+      "early_stop": 0.111537,
+      "calibration": 0.111624,
+      "test": 0.111575
+    }
+  },
   "test_metrics": {
-    "accuracy": 0.7167632897710524,
-    "f1": 0.2899371843823131,
-    "precision": 0.20126538987688097,
-    "recall": 0.5182738881549978,
-    "auc": 0.6861824188396122,
-    "avg_precision": 0.22133012805403224,
-    "brier": 0.09384026336578136,
-    "threshold": 0.1460446247464503
+    "accuracy": 0.7089024270413677,
+    "f1": 0.2858864649873448,
+    "precision": 0.1968138068370395,
+    "recall": 0.5222369000440334,
+    "auc": 0.6834254997133551,
+    "avg_precision": 0.21872200541586376,
+    "brier": 0.09396123222704958,
+    "threshold": 0.14763231197771587
   },
   "subgroup_metrics": {
     "low_util": {
       "n": 11108,
-      "recall": 0.1870824053452116,
-      "auc": 0.6580800407478584,
+      "recall": 0.18596881959910913,
+      "auc": 0.6537281672843559,
       "readmit_rate": 0.08084263593806265
     },
     "high_util": {
       "n": 1983,
-      "recall": 0.9097222222222222,
-      "auc": 0.6725551913938439,
+      "recall": 0.9120370370370371,
+      "auc": 0.6725969804427252,
       "readmit_rate": 0.2178517397881997
     }
   },
   "train_samples": 61059,
-  "cal_samples": 20353,
+  "early_stop_samples": 10176,
+  "cal_samples": 10177,
   "test_samples": 20354,
   "positive_rate": 0.11159915885462728,
   "artifacts": [

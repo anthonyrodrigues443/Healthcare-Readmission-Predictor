@@ -18,7 +18,8 @@ from time import perf_counter
 import joblib
 import numpy as np
 import pandas as pd
-from catboost import CatBoostClassifier
+
+from src.production_pipeline import prepare_model_input
 
 MODEL_DIR = Path("models")
 
@@ -39,13 +40,8 @@ def predict_single(patient_features: dict, model_dir: Path = MODEL_DIR) -> dict:
     """
     calibrator, feature_cols, threshold, manifest = load_model(model_dir)
 
-    df = pd.DataFrame([patient_features])
-
-    # Ensure all expected columns exist (fill missing with 0)
-    for col in feature_cols:
-        if col not in df.columns:
-            df[col] = 0
-    df = df[feature_cols]
+    raw_df = pd.DataFrame([patient_features])
+    df = prepare_model_input(raw_df, feature_cols)
 
     t0 = perf_counter()
     prob = calibrator.predict_proba(df)[:, 1][0]
@@ -85,10 +81,7 @@ def predict_batch(df: pd.DataFrame, model_dir: Path = MODEL_DIR) -> pd.DataFrame
     """Predict readmission risk for a batch of patients."""
     calibrator, feature_cols, threshold, _ = load_model(model_dir)
 
-    for col in feature_cols:
-        if col not in df.columns:
-            df[col] = 0
-    X = df[feature_cols]
+    X = prepare_model_input(df, feature_cols)
 
     t0 = perf_counter()
     probs = calibrator.predict_proba(X)[:, 1]

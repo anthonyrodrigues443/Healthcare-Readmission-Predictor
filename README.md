@@ -21,22 +21,23 @@ This project builds a research-grade ML pipeline that:
 | Readmission rate | 11.2% (30-day) |
 | Features (raw) | 50 |
 | Features (engineered) | 69 |
-| Train/Test split | 80/20 stratified |
+| Production split | 60/10/10/20 train / early-stop / calibration / test |
 
 ## Current Status
 
-**Phase:** 6 of 7 completed
-**Best Model:** CatBoost (Optuna-tuned, full_83, calibrated) — AUC 0.686, F1 0.290, Brier 0.094, 0.01 ms/sample
+**Phase:** 7 of 7 completed
+**Best R&D Model:** Native-cat CatBoost (raw+engineered, calibrated) — AUC 0.694, F1 0.293, Brier 0.093
+**Production Model:** CatBoost (Optuna-tuned, full_83, calibrated) — AUC 0.683, F1 0.286, Brier 0.094, 0.01 ms/sample
 **Target:** AUC > 0.70 (published SOTA: 0.78-0.87)
-**Models Compared:** ~35 configurations across 6 phases
+**Models Compared:** ~37 configurations across 7 phases
 
 ## Key Findings
 
-1. CatBoost (Optuna-tuned, full_83) is Phase 4 champion — AUC 0.691, F1 0.287; tuning adds only +0.004 over default, confirming the ceiling is in features not model architecture
-2. SMOTE destroys performance on this dataset — F1 drops 0.277→0.104; cost-sensitive class weighting is strictly superior
-3. The model is clinically defensible — SHAP confirms Prior Utilization + Discharge Pathway account for 53% of feature importance, matching AHRQ readmission literature (rho=0.971 with native importance)
-4. "First-timer blind spot" is a data problem, not a model problem — SHAP confirms acute_prior_load and number_inpatient (the dominant features) are structurally zero for first-time patients; LIME shows false negatives have literally no positive signal
-5. Production inference runs at 0.01 ms/sample with sub-millisecond end-to-end latency; LACE and ML disagree on ~15% of patients — these are the cases where 83 features provide signal beyond LACE's 4 components
+1. Native categorical handling is the biggest remaining lift. Preserving raw diagnosis, medication-state, and discharge categories improved held-out AUC from 0.683 to 0.694 and F1 from 0.286 to 0.293; paired bootstrap on the same test set gave a 95% AUC delta CI of +0.007 to +0.015.
+2. The first-timer blind spot is still structural. The better native-cat ranker actually lowered `prior_utilization == 0` recall from 0.186 to 0.154, so richer categorical signal improves global ranking but does not solve cohort heterogeneity.
+3. SMOTE destroys performance on this dataset — F1 drops 0.277→0.104; cost-sensitive class weighting is strictly superior.
+4. The model is clinically defensible — SHAP confirms Prior Utilization + Discharge Pathway account for 53% of feature importance, matching AHRQ readmission literature (rho=0.971 with native importance).
+5. Production inference remains trivial operationally at 0.01 ms/sample; the stricter 60/10/10/20 production split lowered reported metrics slightly, but the pipeline is now cleaner because early stopping and calibration use separate holdouts.
 
 ## Iteration Summary
 
@@ -182,6 +183,34 @@ This project builds a research-grade ML pipeline that:
 
 ---
 
+### Phase 7: Native Categorical Experiment + Validation Tightening — 2026-04-05
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**Validation Fix:** Tightened the production pipeline to use separate early-stop and calibration holdouts (`60/10/10/20`) instead of letting the same slice drive both boosting and calibration. The production `full_83` CatBoost now reports AUC `0.683`, F1 `0.286`, and Brier `0.094` on the corrected split.<br><br>
+**Native-Categorical Run:** Rebuilt the CatBoost experiment to preserve raw categorical structure (`diag_1/2/3`, medication states, discharge/admission IDs, race/gender/age bins) alongside the strongest engineered features. That model reached AUC `0.694`, F1 `0.293`, precision `0.219`, and Brier `0.093`.
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase7_native_categorical_comparison.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Combined Insight:** Flattening the EHR was leaving signal on the table. Native categorical handling recovered diagnosis-level and medication-state detail without exploding the feature space, and the AUC lift held under paired bootstrap (`ΔAUC = +0.011`, 95% CI `+0.007` to `+0.015`).<br><br>
+**Surprise:** The better global ranker was *worse* on first-timers (`low-util recall 0.186 → 0.154`). The remaining gap is not "use a stronger booster"; it is "route or model first-timers differently."<br><br>
+**Research:** CatBoost's own docs + NeurIPS 2018 paper explain why ordered target statistics and categorical feature combinations can outperform blunt one-hot encoding; EmbPred30 on this same UCI cohort also treated categoricals as first-class inputs. Our Phase 7 top features (`discharge_disposition_id`, `diag_1`, `diag_3`, `insulin`) align with 2024 diabetic readmission work that highlights discharge disposition and lab intensity.<br><br>
+**Best Model So Far:** Native-cat CatBoost (raw+engineered, calibrated) — AUC `0.694`, F1 `0.293`, Brier `0.093`
+
+</td>
+</tr>
+</table>
+
+---
+
 ## Project Structure
 
 ```
@@ -203,3 +232,4 @@ Healthcare-Readmission-Predictor/
 2. [ML-based prediction model for 30-day readmission risk in elderly patients, PMC 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC12819643/)
 3. [Heart failure readmission — optimal feature set, Frontiers in AI 2024](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2024.1363226/full)
 4. [UCI ML Repository — Diabetes 130-US Hospitals Dataset](https://archive.ics.uci.edu/dataset/296)
+5. [CatBoost: unbiased boosting with categorical features, NeurIPS 2018](https://papers.nips.cc/paper/7898-catboost-unbiased-boosting-with-categorical-features.pdf)

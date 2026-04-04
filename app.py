@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from src.production_pipeline import compute_lace_proxy, prepare_model_input
+
 MODEL_DIR = Path("models")
 
 
@@ -35,24 +37,6 @@ def load_artifacts():
     raw_model = calibrator.estimator.estimator
     importances = dict(zip(feature_cols, raw_model.get_feature_importance()))
     return calibrator, feature_cols, manifest, importances
-
-
-def compute_lace(time_in_hospital, admission_type_id, number_diagnoses, number_emergency):
-    """Compute LACE index for comparison."""
-    los = min(time_in_hospital, 14)
-    if los <= 1: l_score = 0
-    elif los == 2: l_score = 1
-    elif los == 3: l_score = 2
-    elif los <= 6: l_score = 3
-    elif los <= 13: l_score = 4
-    else: l_score = 7
-
-    a_score = 3 if admission_type_id == 1 else 0
-    c_score = min(number_diagnoses, 5)
-    er = min(number_emergency, 4)
-    e_score = er
-
-    return l_score + a_score + c_score + e_score
 
 
 # ─── Page config ─────────────────────────────────────────────────────────────
@@ -200,11 +184,10 @@ with tab_predict:
         glucose_tested = st.checkbox("Glucose Tested", value=defaults.get("glucose_tested", True))
 
     if st.button("🔍 Predict Readmission Risk", type="primary", use_container_width=True):
-        # Build derived features matching the training pipeline
         prior_utilization = number_outpatient + number_emergency + number_inpatient
         polypharmacy = 1 if num_medications > 5 else 0
 
-        patient = {
+        patient_input = {
             "time_in_hospital": time_in_hospital,
             "num_lab_procedures": num_lab_procedures,
             "num_procedures": num_procedures,
@@ -224,37 +207,11 @@ with tab_predict:
             "diabetes_primary": int(diabetes_primary),
             "med_changed": int(med_changed),
             "diabetes_med": int(diabetes_med),
-            "prior_utilization": prior_utilization,
-            "polypharmacy": polypharmacy,
-            "n_medications_changed": 1 if med_changed else 0,
-            "n_medications_active": min(num_medications, 5),
-            "lab_procedure_ratio": num_lab_procedures / (time_in_hospital + 1),
-            "procedure_ratio": num_procedures / (time_in_hospital + 1),
-            "lace_score": compute_lace(time_in_hospital, admission_type_id, number_diagnoses, number_emergency),
-            # Phase 3 transition features
-            "discharge_post_acute": 1 if discharge_disposition_id in [2, 3, 4, 5, 6, 22, 23, 24] else 0,
-            "discharge_ama_or_psych": 1 if discharge_disposition_id in [7, 28] else 0,
-            "discharge_home": 1 if discharge_disposition_id == 1 else 0,
-            "admission_emergency": 1 if admission_type_id == 1 else 0,
-            "admission_transfer_source": 1 if admission_source_id in [4, 5, 6, 20, 22, 25] else 0,
-            "admission_ed_source": 1 if admission_source_id == 7 else 0,
-            "utilization_band": min(3, 0 if prior_utilization == 0 else (1 if prior_utilization == 1 else (2 if prior_utilization <= 3 else 3))),
-            "acute_prior_load": number_inpatient * 2 + number_emergency,
-            "meds_per_day": num_medications / (time_in_hospital + 1),
-            "diagnoses_per_day": number_diagnoses / (time_in_hospital + 1),
-            "glycemic_instability": 1 if (A1C_high or glucose_high) else 0,
-            "utilization_x_polypharmacy": prior_utilization * polypharmacy,
-            "utilization_x_transition": prior_utilization * (1 if discharge_disposition_id in [2, 3, 4, 5, 6, 22, 23, 24] else 0),
-            "los_x_med_burden": time_in_hospital * num_medications,
-            "instability_x_utilization": (1 if (A1C_high or glucose_high) else 0) * prior_utilization,
         }
 
-        # Build feature vector
-        df = pd.DataFrame([patient])
-        for col in feature_cols:
-            if col not in df.columns:
-                df[col] = 0
-        df = df[feature_cols]
+        raw_df = pd.DataFrame([patient_input])
+        df = prepare_model_input(raw_df, feature_cols)
+        lace = int(round(float(compute_lace_proxy(raw_df).iloc[0])))
 
         # Predict
         t0 = perf_counter()
@@ -262,7 +219,6 @@ with tab_predict:
         latency = (perf_counter() - t0) * 1000
 
         risk_label = "HIGH RISK" if prob >= threshold else "LOW RISK"
-        lace = compute_lace(time_in_hospital, admission_type_id, number_diagnoses, number_emergency)
 
         # --- Display results ---
         st.divider()
@@ -323,7 +279,7 @@ with tab_predict:
             st.markdown(f"- **Length of Stay:** {time_in_hospital} days")
             st.markdown(f"- **Prior Utilization:** {prior_utilization} visits (inpatient: {number_inpatient}, ER: {number_emergency}, outpatient: {number_outpatient})")
             st.markdown(f"- **Medications:** {num_medications} (polypharmacy: {'Yes' if polypharmacy else 'No'})")
-            st.markdown(f"- **Discharge:** {'Post-acute facility' if patient['discharge_post_acute'] else 'Home'}")
+            st.markdown(f"- **Discharge:** {'Post-acute facility' if int(df['discharge_post_acute'].iloc[0]) else 'Home'}")
 
         with col_b:
             st.markdown("**Model vs LACE Comparison:**")
@@ -354,10 +310,7 @@ with tab_batch:
         st.write(f"Loaded {len(df_upload)} patients")
 
         if st.button("Run Batch Prediction"):
-            for col in feature_cols:
-                if col not in df_upload.columns:
-                    df_upload[col] = 0
-            X_batch = df_upload[feature_cols]
+            X_batch = prepare_model_input(df_upload, feature_cols)
 
             t0 = perf_counter()
             probs = calibrator.predict_proba(X_batch)[:, 1]
@@ -406,22 +359,25 @@ with tab_about:
 
     | Metric | Value |
     |--------|-------|
-    | **Champion Model** | CatBoost with Optuna-tuned hyperparameters |
+    | **Champion Model** | Production: one-hot CatBoost; R&D leader: native-cat CatBoost |
     | **Calibration** | Isotonic regression (Brier: 0.211 → 0.095) |
-    | **Test AUC** | 0.691 |
+    | **Test AUC** | 0.683 production / 0.694 native-cat R&D |
     | **Features** | 83 (clinical + transition + interaction) |
     | **Key Finding** | `random_strength` accounts for 87.4% of HP importance |
 
     #### Key Discoveries
 
-    1. **SMOTE destroys performance on EHR data** — F1 drops 0.28 → 0.10.
+    1. **Native categorical handling improves ranking quality** — preserving raw
+       diagnosis, medication-state, and discharge categories lifted AUC 0.683 → 0.694
+       with a paired-bootstrap 95% CI of +0.007 to +0.015.
+
+    2. **First-timer blind spot persists** — The production model catches 91% of
+       high-utilization readmissions but only 19% of first-timer readmissions
+       (`prior_util = 0`). The native-cat model improved global AUC while making
+       that slice slightly worse.
+
+    3. **SMOTE destroys performance on EHR data** — F1 drops 0.28 → 0.10.
        Synthetic oversampling creates fractional binary features = unrealistic patients.
-
-    2. **First-timer blind spot** — The model catches 92% of frequent flyers
-       (prior inpatient 2+) but only 30% of first-time readmissions (prior util = 0).
-
-    3. **23 clinical features match 68 total** — Domain knowledge compresses
-       feature space by 66% with negligible AUC loss (0.645 vs 0.648).
 
     4. **Calibration matters more than tuning** — Isotonic calibration reduces
        Brier score by 55% (0.211 → 0.095), while Optuna tuning adds only +0.004 AUC.
@@ -434,7 +390,7 @@ with tab_about:
     - **C**omorbidity (0-5 pts)
     - **E**R visits (0-4 pts)
 
-    Our ML model uses LACE as one of 83 features and achieves AUC 0.691
+    Our production ML model uses LACE as one of 83 features and achieves AUC 0.683
     vs LACE's 0.558 on this dataset.
 
     #### Limitations
