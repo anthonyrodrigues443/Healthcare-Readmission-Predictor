@@ -76,3 +76,19 @@ Append new phases below as research progresses.
 **Champion after Mark's Phase 5:** Hybrid + subgroup thresholds (`transition_29`) on the phase question (AUC=0.673, F1=0.263, low-util recall=0.509).
 **Combined insight:** Anthony's tuned CatBoost is still the cleanest global ranker, but Phase 5 shows the blind spot is not solvable with brute-force weighting alone. The specialist only helps when routing includes its own threshold.
 **Key finding:** Reweighting nearly tripled first-timer recall but destroyed AUC. A transition-aware specialist recovered almost the same first-timer recall while preserving roughly `+0.10` AUC over blunt weighting.
+
+## Phase 6 - 2026-04-04 (Anthony)
+
+Production pipeline + Streamlit UI. AUC=0.686, F1=0.290, Brier=0.094, inference 0.01ms/sample. LACE vs ML disagree on ~15% of patients.
+
+## Phase 6 - 2026-04-04 (Mark)
+
+| # | Experiment | Method | Key Result | Clinical Validity |
+|---|-----------|--------|-----------|-------------------|
+| 6.1 | SHAP Global vs Native | TreeExplainer (n=2000) | rho=0.971; Prior Utilization=30.2%, Discharge Pathway=22.8% | HIGH |
+| 6.2 | Subgroup SHAP | Low-util vs high-util | High-util: acute_prior_load |SHAP|=0.317; Low-util: discharge_post_acute |SHAP|=0.166 | EXPLAINS blind spot |
+| 6.3 | LIME Individual | 4 representative patients | False negatives have zero positive signal; errors are interpretable | Trustworthy |
+| 6.4 | Partial Dependence | Top 6 SHAP features | All show clinically expected monotonic relationships | No red flags |
+| 6.5 | SHAP Dependence Pairs | 4 clinical feature pairs | Discharge x utilization interaction is real and clinically plausible | Supports deployment |
+
+**Key finding:** 53% of total SHAP importance from Prior Utilization + Discharge Pathway -- matches AHRQ readmission literature exactly. The low-utilization blind spot is structural (utilization features = 0 for first-timers), not a model bug. Glycemic control contributes only 1.3% despite a diabetic cohort.

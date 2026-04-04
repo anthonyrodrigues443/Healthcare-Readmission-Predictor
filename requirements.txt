@@ -7,6 +7,7 @@ catboost>=1.2
 matplotlib>=3.7
 seaborn>=0.12
 shap>=0.42
+lime>=0.2
 optuna>=3.4
 imbalanced-learn>=0.11
 joblib>=1.3
