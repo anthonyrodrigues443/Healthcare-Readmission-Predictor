@@ -25,18 +25,18 @@ This project builds a research-grade ML pipeline that:
 
 ## Current Status
 
-**Phase:** 4 of 7 completed
-**Best Model:** CatBoost (Optuna-tuned, full_83 features) — AUC 0.691, F1 0.287, Recall 0.600
+**Phase:** 6 of 7 completed
+**Best Model:** CatBoost (Optuna-tuned, full_83, calibrated) — AUC 0.686, F1 0.290, Brier 0.094, 0.01 ms/sample
 **Target:** AUC > 0.70 (published SOTA: 0.78-0.87)
-**Models Compared:** ~32 configurations across 4 phases
+**Models Compared:** ~35 configurations across 6 phases
 
 ## Key Findings
 
 1. CatBoost (Optuna-tuned, full_83) is Phase 4 champion — AUC 0.691, F1 0.287; tuning adds only +0.004 over default, confirming the ceiling is in features not model architecture
 2. SMOTE destroys performance on this dataset — F1 drops 0.277→0.104; cost-sensitive class weighting is strictly superior
-3. Algorithm upgrades only pay off when features are rich enough — CatBoost on 8 workflow features gained only +0.001 AUC vs +0.041 on 68 features; grouped transition semantics recovered only 1/3 of the full-matrix lift
-4. "First-timer blind spot": model catches 92% of frequent flyers (prior util 4+) but only 30% of first-time readmissions — it learns "was readmitted before → will be readmitted again", not clinical risk
-5. Raw CatBoost probabilities are 55% miscalibrated (Brier 0.211 → 0.095 after isotonic calibration) — clinical deployment must include post-hoc calibration
+3. The model is clinically defensible — SHAP confirms Prior Utilization + Discharge Pathway account for 53% of feature importance, matching AHRQ readmission literature (rho=0.971 with native importance)
+4. "First-timer blind spot" is a data problem, not a model problem — SHAP confirms acute_prior_load and number_inpatient (the dominant features) are structurally zero for first-time patients; LIME shows false negatives have literally no positive signal
+5. Production inference runs at 0.01 ms/sample with sub-millisecond end-to-end latency; LACE and ML disagree on ~15% of patients — these are the cases where 83 features provide signal beyond LACE's 4 components
 
 ## Iteration Summary
 
@@ -154,6 +154,33 @@ This project builds a research-grade ML pipeline that:
 
 ---
 
+### Phase 6: Production Pipeline + Explainability — 2026-04-04
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**Production Pipeline:** Built complete train→calibrate→predict pipeline with serialized CatBoost artifacts and a Streamlit UI with LACE comparison. Production model achieves AUC 0.686, F1 0.290, Brier 0.094 at 0.01 ms/sample — 100x faster than needed for real-time clinical use.<br><br>
+**Explainability Analysis:** SHAP global analysis (2,000 test samples) confirmed Prior Utilization + Discharge Pathway account for 53% of feature importance (Spearman rho=0.971 vs native). LIME case analysis showed false negatives have zero positive utilization signals — model errors are interpretable, not arbitrary.
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase6_shap_summary.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Combined Insight:** Anthony proved the model can be deployed (0.01 ms inference, calibrated probabilities, LACE comparison); Mark's analysis shows where it should and shouldn't be trusted. Together they establish both technical feasibility and clinical defensibility.<br><br>
+**Surprise:** Glycemic control contributes only 1.3% of SHAP importance despite this being a diabetic cohort — and prior utilization matters more for younger patients than older ones, inverting clinical intuition.<br><br>
+**Research:** Scientific Reports 2024 — SHAP + human-machine collaboration improves clinical acceptance; Frontiers in CV Medicine 2025 — prior utilization + discharge pathway are top readmission drivers (confirmed here at 30.2% + 22.8%).<br><br>
+**Best Model So Far:** CatBoost (Optuna-tuned, full_83, calibrated) — AUC 0.686, F1 0.290, Brier 0.094
+
+</td>
+</tr>
+</table>
+
+---
 
 ## Project Structure
 
