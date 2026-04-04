@@ -1,0 +1,506 @@
+{
+  "phase": 5,
+  "date": "2026-04-03",
+  "researcher": "Mark Rodrigues",
+  "dataset_rows": 101766,
+  "feature_sets": {
+    "full_83": 83,
+    "clinical_23": 23,
+    "transition_29": 29
+  },
+  "experiments": [
+    {
+      "model": "Tuned CatBoost (full_83)",
+      "threshold": 0.12912937414848136,
+      "latency_ms": 0.03871460002847016,
+      "notes": "Anthony Phase 4 backbone.",
+      "overall": {
+        "accuracy": 0.7034980839147097,
+        "f1": 0.2887448438420743,
+        "precision": 0.1971355004827808,
+        "recall": 0.539409951563188,
+        "auc": 0.6867670682276181,
+        "avg_precision": 0.23192804870196393,
+        "brier": 0.09395360020152652,
+        "flagged_pct": 0.305296256264125
+      },
+      "low_util": {
+        "accuracy": 0.871263953907094,
+        "f1": 0.21255506607929514,
+        "precision": 0.210239651416122,
+        "recall": 0.21492204899777284,
+        "auc": 0.6586584836474132,
+        "avg_precision": 0.17386127281531633,
+        "brier": 0.07178547802826431,
+        "flagged_pct": 0.08264314007922219
+      },
+      "high_util": {
+        "accuracy": 0.39687342410489157,
+        "f1": 0.3971774193548387,
+        "precision": 0.2538659793814433,
+        "recall": 0.9120370370370371,
+        "auc": 0.6734394775174917,
+        "avg_precision": 0.38209496971887136,
+        "brier": 0.15882973016720134,
+        "flagged_pct": 0.7826525466464952
+      },
+      "calibration_auc": 0.6780880933285428,
+      "calibration_brier": 0.09452007218287717
+    },
+    {
+      "model": "Weighted CatBoost (full_83, low-util positives x3)",
+      "threshold": 0.12005595993231637,
+      "latency_ms": 0.0469864000333473,
+      "notes": "Extra weight on low-util positives.",
+      "overall": {
+        "accuracy": 0.6761815859290558,
+        "f1": 0.22522628423651112,
+        "precision": 0.1536241180243746,
+        "recall": 0.4218405988551299,
+        "auc": 0.5736376368929288,
+        "avg_precision": 0.1555381154517055,
+        "brier": 0.09819034667220927,
+        "flagged_pct": 0.3063771248894566
+      },
+      "low_util": {
+        "accuracy": 0.6240547353258913,
+        "f1": 0.19444444444444445,
+        "precision": 0.11759216052263183,
+        "recall": 0.5612472160356348,
+        "auc": 0.6304939805291551,
+        "avg_precision": 0.13945174421293946,
+        "brier": 0.07456269584515417,
+        "flagged_pct": 0.3858480374504861
+      },
+      "high_util": {
+        "accuracy": 0.5592536560766516,
+        "f1": 0.38189533239038187,
+        "precision": 0.27494908350305497,
+        "recall": 0.625,
+        "auc": 0.6399992836163049,
+        "avg_precision": 0.3095626623359784,
+        "brier": 0.1763585653317935,
+        "flagged_pct": 0.4952092788703984
+      },
+      "calibration_auc": 0.5798273859906563,
+      "calibration_brier": 0.09830174437319056
+    },
+    {
+      "model": "Hybrid router (clinical_23 specialist)",
+      "threshold": 0.12912937414848136,
+      "latency_ms": 0.06729419995099307,
+      "notes": "Route first-timers to clinical specialist.",
+      "overall": {
+        "accuracy": 0.7296354524909109,
+        "f1": 0.2727633143914365,
+        "precision": 0.19486404833836857,
+        "recall": 0.45442536327608984,
+        "auc": 0.664437842306135,
+        "avg_precision": 0.21727192772995518,
+        "brier": 0.09496842090401217,
+        "flagged_pct": 0.26019455635255967
+      },
+      "low_util": {
+        "accuracy": 0.9191573640619374,
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "auc": 0.6049923761367627,
+        "avg_precision": 0.1089220457634079,
+        "brier": 0.07364500814875341,
+        "flagged_pct": 0.0
+      },
+      "high_util": {
+        "accuracy": 0.39687342410489157,
+        "f1": 0.3971774193548387,
+        "precision": 0.2538659793814433,
+        "recall": 0.9120370370370371,
+        "auc": 0.6734394775174917,
+        "avg_precision": 0.38209496971887136,
+        "brier": 0.15882973016720134,
+        "flagged_pct": 0.7826525466464952
+      },
+      "calibration_auc": 0.6574569950454681,
+      "calibration_brier": 0.09507813432317425
+    },
+    {
+      "model": "Hybrid router (transition_29 specialist)",
+      "threshold": 0.13199088786355828,
+      "latency_ms": 0.06981760007329285,
+      "notes": "Route first-timers to transition-aware specialist.",
+      "overall": {
+        "accuracy": 0.691264616291638,
+        "f1": 0.2745324405449088,
+        "precision": 0.18604287278986073,
+        "recall": 0.5235579040070454,
+        "auc": 0.6733140324400235,
+        "avg_precision": 0.22025308520790476,
+        "brier": 0.09467239827055793,
+        "flagged_pct": 0.31399233565883855
+      },
+      "low_util": {
+        "accuracy": 0.8362441483615413,
+        "f1": 0.16826703246456332,
+        "precision": 0.14274631497284718,
+        "recall": 0.20489977728285078,
+        "auc": 0.6294955162086168,
+        "avg_precision": 0.12600735717756079,
+        "brier": 0.07310258424874189,
+        "flagged_pct": 0.11604249189773136
+      },
+      "high_util": {
+        "accuracy": 0.40040342914775595,
+        "f1": 0.39614017267648555,
+        "precision": 0.25374105400130126,
+        "recall": 0.9027777777777778,
+        "auc": 0.6734394775174917,
+        "avg_precision": 0.38209496971887136,
+        "brier": 0.15882973016720134,
+        "flagged_pct": 0.7750882501260716
+      },
+      "calibration_auc": 0.6708737109399029,
+      "calibration_brier": 0.09474837622518072
+    },
+    {
+      "model": "Hybrid router + subgroup thresholds (clinical_23)",
+      "threshold": 0.12912937414848136,
+      "low_util_threshold": 0.08639176725419807,
+      "latency_ms": 0.0657300000311807,
+      "notes": "Use specialist threshold only for first-timers.",
+      "overall": {
+        "accuracy": 0.5694212439815269,
+        "f1": 0.2548886243836082,
+        "precision": 0.15793910020018964,
+        "recall": 0.6600616468516072,
+        "auc": 0.664437842306135,
+        "avg_precision": 0.21727192772995518,
+        "brier": 0.09496842090401217,
+        "flagged_pct": 0.4662965510464773
+      },
+      "low_util": {
+        "accuracy": 0.6255851638458768,
+        "f1": 0.18338896524641665,
+        "precision": 0.11132300357568534,
+        "recall": 0.5200445434298441,
+        "auc": 0.6049923761367627,
+        "avg_precision": 0.1089220457634079,
+        "brier": 0.07364500814875341,
+        "flagged_pct": 0.3776557436082103
+      },
+      "high_util": {
+        "accuracy": 0.39687342410489157,
+        "f1": 0.3971774193548387,
+        "precision": 0.2538659793814433,
+        "recall": 0.9120370370370371,
+        "auc": 0.6734394775174917,
+        "avg_precision": 0.38209496971887136,
+        "brier": 0.15882973016720134,
+        "flagged_pct": 0.7826525466464952
+      },
+      "calibration_auc": 0.6574569950454681,
+      "calibration_brier": 0.09507813432317425
+    },
+    {
+      "model": "Hybrid router + subgroup thresholds (transition_29)",
+      "threshold": 0.12912937414848136,
+      "low_util_threshold": 0.08655253056857742,
+      "latency_ms": 0.06767619994934648,
+      "notes": "Use transition specialist threshold only for first-timers.",
+      "overall": {
+        "accuracy": 0.5897120959025253,
+        "f1": 0.2628652131697414,
+        "precision": 0.1643850739677633,
+        "recall": 0.6556583003082342,
+        "auc": 0.6733140324400235,
+        "avg_precision": 0.22025308520790476,
+        "brier": 0.09467239827055793,
+        "flagged_pct": 0.4450230912842684
+      },
+      "low_util": {
+        "accuracy": 0.6627655743608211,
+        "f1": 0.196137339055794,
+        "precision": 0.12147793726741095,
+        "recall": 0.5089086859688196,
+        "auc": 0.6294955162086168,
+        "avg_precision": 0.12600735717756079,
+        "brier": 0.07310258424874189,
+        "flagged_pct": 0.3386748289521066
+      },
+      "high_util": {
+        "accuracy": 0.39687342410489157,
+        "f1": 0.3971774193548387,
+        "precision": 0.2538659793814433,
+        "recall": 0.9120370370370371,
+        "auc": 0.6734394775174917,
+        "avg_precision": 0.38209496971887136,
+        "brier": 0.15882973016720134,
+        "flagged_pct": 0.7826525466464952
+      },
+      "calibration_auc": 0.6708737109399029,
+      "calibration_brier": 0.09474837622518072
+    }
+  ],
+  "overall_table": [
+    {
+      "model": "Tuned CatBoost (full_83)",
+      "accuracy": 0.7034980839147097,
+      "f1": 0.2887448438420743,
+      "precision": 0.1971355004827808,
+      "recall": 0.539409951563188,
+      "auc": 0.6867670682276181,
+      "brier": 0.09395360020152652,
+      "latency_ms": 0.03871460002847016,
+      "low_util_recall": 0.21492204899777284,
+      "high_util_recall": 0.9120370370370371,
+      "notes": "Anthony Phase 4 backbone."
+    },
+    {
+      "model": "Weighted CatBoost (full_83, low-util positives x3)",
+      "accuracy": 0.6761815859290558,
+      "f1": 0.22522628423651112,
+      "precision": 0.1536241180243746,
+      "recall": 0.4218405988551299,
+      "auc": 0.5736376368929288,
+      "brier": 0.09819034667220927,
+      "latency_ms": 0.0469864000333473,
+      "low_util_recall": 0.5612472160356348,
+      "high_util_recall": 0.625,
+      "notes": "Extra weight on low-util positives."
+    },
+    {
+      "model": "Hybrid router (clinical_23 specialist)",
+      "accuracy": 0.7296354524909109,
+      "f1": 0.2727633143914365,
+      "precision": 0.19486404833836857,
+      "recall": 0.45442536327608984,
+      "auc": 0.664437842306135,
+      "brier": 0.09496842090401217,
+      "latency_ms": 0.06729419995099307,
+      "low_util_recall": 0.0,
+      "high_util_recall": 0.9120370370370371,
+      "notes": "Route first-timers to clinical specialist."
+    },
+    {
+      "model": "Hybrid router (transition_29 specialist)",
+      "accuracy": 0.691264616291638,
+      "f1": 0.2745324405449088,
+      "precision": 0.18604287278986073,
+      "recall": 0.5235579040070454,
+      "auc": 0.6733140324400235,
+      "brier": 0.09467239827055793,
+      "latency_ms": 0.06981760007329285,
+      "low_util_recall": 0.20489977728285078,
+      "high_util_recall": 0.9027777777777778,
+      "notes": "Route first-timers to transition-aware specialist."
+    },
+    {
+      "model": "Hybrid router + subgroup thresholds (clinical_23)",
+      "accuracy": 0.5694212439815269,
+      "f1": 0.2548886243836082,
+      "precision": 0.15793910020018964,
+      "recall": 0.6600616468516072,
+      "auc": 0.664437842306135,
+      "brier": 0.09496842090401217,
+      "latency_ms": 0.0657300000311807,
+      "low_util_recall": 0.5200445434298441,
+      "high_util_recall": 0.9120370370370371,
+      "notes": "Use specialist threshold only for first-timers."
+    },
+    {
+      "model": "Hybrid router + subgroup thresholds (transition_29)",
+      "accuracy": 0.5897120959025253,
+      "f1": 0.2628652131697414,
+      "precision": 0.1643850739677633,
+      "recall": 0.6556583003082342,
+      "auc": 0.6733140324400235,
+      "brier": 0.09467239827055793,
+      "latency_ms": 0.06767619994934648,
+      "low_util_recall": 0.5089086859688196,
+      "high_util_recall": 0.9120370370370371,
+      "notes": "Use transition specialist threshold only for first-timers."
+    }
+  ],
+  "specialist_slice_models": [
+    {
+      "model": "Clinical specialist only (low-util slice)",
+      "threshold": 0.08639176725419807,
+      "accuracy": 0.6255851638458768,
+      "f1": 0.18338896524641665,
+      "precision": 0.11132300357568534,
+      "recall": 0.5200445434298441,
+      "auc": 0.6049923761367627,
+      "avg_precision": 0.1089220457634079,
+      "brier": 0.07364500814875341,
+      "flagged_pct": 0.3776557436082103
+    },
+    {
+      "model": "Transition specialist only (low-util slice)",
+      "threshold": 0.08655253056857742,
+      "accuracy": 0.6627655743608211,
+      "f1": 0.196137339055794,
+      "precision": 0.12147793726741095,
+      "recall": 0.5089086859688196,
+      "auc": 0.6294955162086168,
+      "avg_precision": 0.12600735717756079,
+      "brier": 0.07310258424874189,
+      "flagged_pct": 0.3386748289521066
+    }
+  ],
+  "explainability": {
+    "base_top_features": [
+      {
+        "feature": "discharge_disposition_id",
+        "importance": 17.381402167149563
+      },
+      {
+        "feature": "acute_prior_load",
+        "importance": 6.522909268467776
+      },
+      {
+        "feature": "discharge_post_acute",
+        "importance": 5.5976982490918425
+      },
+      {
+        "feature": "age_numeric",
+        "importance": 4.319018909651083
+      },
+      {
+        "feature": "number_inpatient",
+        "importance": 3.974824546012764
+      },
+      {
+        "feature": "n_medications_active",
+        "importance": 3.8135341311139226
+      },
+      {
+        "feature": "number_diagnoses",
+        "importance": 3.761194472541007
+      },
+      {
+        "feature": "lab_procedure_ratio",
+        "importance": 3.473162004799182
+      },
+      {
+        "feature": "num_medications",
+        "importance": 3.4375799498831467
+      },
+      {
+        "feature": "meds_per_day",
+        "importance": 3.042597699399584
+      },
+      {
+        "feature": "num_lab_procedures",
+        "importance": 2.903637750504857
+      },
+      {
+        "feature": "procedure_ratio",
+        "importance": 2.582009659112084
+      }
+    ],
+    "specialist_top_features": [
+      {
+        "feature": "discharge_post_acute",
+        "importance": 20.17850966997381
+      },
+      {
+        "feature": "number_diagnoses",
+        "importance": 12.449347118118453
+      },
+      {
+        "feature": "time_in_hospital",
+        "importance": 9.76007507606074
+      },
+      {
+        "feature": "age_numeric",
+        "importance": 8.097105596495227
+      },
+      {
+        "feature": "num_medications",
+        "importance": 7.321106627512697
+      },
+      {
+        "feature": "lace_score",
+        "importance": 5.750467737121195
+      },
+      {
+        "feature": "n_medications_active",
+        "importance": 5.507535199727374
+      },
+      {
+        "feature": "diabetes_med",
+        "importance": 5.300825513944153
+      },
+      {
+        "feature": "lab_procedure_ratio",
+        "importance": 5.086925581995238
+      },
+      {
+        "feature": "procedure_ratio",
+        "importance": 4.045617198367386
+      },
+      {
+        "feature": "num_lab_procedures",
+        "importance": 3.4548504006342386
+      },
+      {
+        "feature": "admission_ed_source",
+        "importance": 2.8075575991531116
+      }
+    ],
+    "specialist_permutation": [
+      {
+        "feature": "discharge_post_acute",
+        "importance": 0.06571686128059089
+      },
+      {
+        "feature": "number_diagnoses",
+        "importance": 0.010514801637767213
+      },
+      {
+        "feature": "age_numeric",
+        "importance": 0.007037960076696659
+      },
+      {
+        "feature": "num_medications",
+        "importance": 0.005746386027061967
+      },
+      {
+        "feature": "time_in_hospital",
+        "importance": 0.005669580240342542
+      },
+      {
+        "feature": "lace_score",
+        "importance": 0.002442930093863982
+      },
+      {
+        "feature": "admission_ed_source",
+        "importance": 0.001979608619873496
+      },
+      {
+        "feature": "diabetes_med",
+        "importance": 0.0017980974153030793
+      },
+      {
+        "feature": "num_lab_procedures",
+        "importance": 0.0017292972303235344
+      },
+      {
+        "feature": "admission_emergency",
+        "importance": 0.0014406483882999587
+      },
+      {
+        "feature": "A1C_high",
+        "importance": 0.0008457798263197703
+      },
+      {
+        "feature": "diabetes_primary",
+        "importance": 0.000529144098649903
+      }
+    ],
+    "surrogate_fidelity_r2": 0.8298992638821203
+  },
+  "frontier_baseline_status": {
+    "gpt_5_4": "Blocked: codex exec returned Access is denied",
+    "opus_4_6": "Blocked: Claude CLI requires Git Bash on Windows"
+  }
+}

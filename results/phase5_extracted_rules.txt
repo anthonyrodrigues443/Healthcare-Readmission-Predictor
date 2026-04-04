@@ -1,0 +1,19 @@
+|--- discharge_post_acute <= 0.500
+|   |--- number_diagnoses <= 5.500
+|   |   |--- diabetes_med <= 0.500
+|   |   |   |--- value: [0.042]
+|   |   |--- diabetes_med >  0.500
+|   |   |   |--- value: [0.053]
+|   |--- number_diagnoses >  5.500
+|   |   |--- time_in_hospital <= 5.500
+|   |   |   |--- value: [0.067]
+|   |   |--- time_in_hospital >  5.500
+|   |   |   |--- value: [0.088]
+|--- discharge_post_acute >  0.500
+|   |--- diabetes_med <= 0.500
+|   |   |--- value: [0.096]
+|   |--- diabetes_med >  0.500
+|   |   |--- lace_score <= 5.500
+|   |   |   |--- value: [0.118]
+|   |   |--- lace_score >  5.500
+|   |   |   |--- value: [0.134]
