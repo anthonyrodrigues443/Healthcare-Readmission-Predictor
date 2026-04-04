@@ -1,0 +1,108 @@
+{
+  "overall": {
+    "accuracy": 0.7167632897710524,
+    "f1": 0.2899371843823131,
+    "precision": 0.20126538987688097,
+    "recall": 0.5182738881549978,
+    "auc": 0.6861824188396122,
+    "avg_precision": 0.22133012805403224,
+    "brier": 0.09384026336578136,
+    "threshold": 0.1460446247464503,
+    "n_test": 20354,
+    "positive_rate": 0.11157512036946055,
+    "flagged_rate": 0.2873145327699715
+  },
+  "subgroups": {
+    "prior_util_0": {
+      "n": 11108,
+      "readmit_rate": 0.0808,
+      "recall": 0.1871,
+      "auc": 0.6581,
+      "flagged_rate": 0.0702
+    },
+    "prior_util_1": {
+      "n": 4008,
+      "readmit_rate": 0.12,
+      "recall": 0.526,
+      "auc": 0.6466,
+      "flagged_rate": 0.3383
+    },
+    "prior_util_4+": {
+      "n": 1983,
+      "readmit_rate": 0.2179,
+      "recall": 0.9097,
+      "auc": 0.6726,
+      "flagged_rate": 0.7741
+    },
+    "age_lt45": {
+      "n": 1213,
+      "readmit_rate": 0.1047,
+      "recall": 0.5748,
+      "auc": 0.7732,
+      "flagged_rate": 0.2193
+    },
+    "age_45_64": {
+      "n": 5370,
+      "readmit_rate": 0.0911,
+      "recall": 0.5378,
+      "auc": 0.7252,
+      "flagged_rate": 0.2417
+    },
+    "age_65_79": {
+      "n": 9781,
+      "readmit_rate": 0.1183,
+      "recall": 0.5048,
+      "auc": 0.6599,
+      "flagged_rate": 0.297
+    },
+    "age_80+": {
+      "n": 3990,
+      "readmit_rate": 0.1248,
+      "recall": 0.5161,
+      "auc": 0.6532,
+      "flagged_rate": 0.3456
+    },
+    "los_1_2d": {
+      "n": 6240,
+      "readmit_rate": 0.0913,
+      "recall": 0.393,
+      "auc": 0.6864,
+      "flagged_rate": 0.1771
+    },
+    "los_3_5d": {
+      "n": 8291,
+      "readmit_rate": 0.1118,
+      "recall": 0.5372,
+      "auc": 0.6911,
+      "flagged_rate": 0.291
+    },
+    "los_6+d": {
+      "n": 5823,
+      "readmit_rate": 0.1329,
+      "recall": 0.5879,
+      "auc": 0.6576,
+      "flagged_rate": 0.4001
+    }
+  },
+  "calibration": {
+    "bin_true": [
+      0.0624,
+      0.1459,
+      0.2305,
+      0.3679,
+      0.513,
+      0.5,
+      0.7143
+    ],
+    "bin_pred": [
+      0.0637,
+      0.146,
+      0.2391,
+      0.343,
+      0.4637,
+      0.5276,
+      0.6333
+    ],
+    "brier_score": 0.09384026336578136
+  }
+}
