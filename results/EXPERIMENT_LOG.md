@@ -92,3 +92,14 @@ Production pipeline + Streamlit UI. AUC=0.686, F1=0.290, Brier=0.094, inference 
 | 6.5 | SHAP Dependence Pairs | 4 clinical feature pairs | Discharge x utilization interaction is real and clinically plausible | Supports deployment |
 
 **Key finding:** 53% of total SHAP importance from Prior Utilization + Discharge Pathway -- matches AHRQ readmission literature exactly. The low-utilization blind spot is structural (utilization features = 0 for first-timers), not a model bug. Glycemic control contributes only 1.3% despite a diabetic cohort.
+
+## Phase 7 - 2026-04-05 (Anthony)
+
+| # | Approach | AUC | F1 | Precision | Recall | Low-Util Recall | Delta vs corrected production baseline | Verdict |
+|---|----------|-----|----|-----------|--------|-----------------|----------------------------------------|---------|
+| 7.1 | One-hot CatBoost (`full_83`, corrected `60/10/10/20` split) | 0.683 | 0.286 | 0.197 | 0.522 | 0.186 | baseline | Cleaner production reference |
+| 7.2 | Native-cat CatBoost (`raw+engineered`) | 0.694 | 0.293 | 0.219 | 0.442 | 0.154 | +0.011 | Best global ranker so far |
+
+**Bootstrap check:** paired test-set bootstrap (`n=400`) gave `ΔAUC = +0.0110` with 95% CI `[+0.0070, +0.0155]`; the native-cat model beat the one-hot baseline in `100%` of bootstrap samples.
+**Champion after Phase 7:** Native-cat CatBoost (`raw+engineered`) on overall discrimination (AUC=0.694, F1=0.293, Brier=0.093).
+**Combined insight:** preserving raw categorical structure recovered real signal from diagnosis codes, discharge IDs, and medication states, but it did not fix the first-timer blind spot. The next lift is likely a hybrid of Phase 7's better ranker with Phase 5's subgroup-aware routing.

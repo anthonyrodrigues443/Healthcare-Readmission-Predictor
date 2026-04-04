@@ -17,7 +17,6 @@ import time
 from pathlib import Path
 
 import joblib
-import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier
 from sklearn.calibration import CalibratedClassifierCV
@@ -27,17 +26,20 @@ from sklearn.metrics import (
     average_precision_score,
     brier_score_loss,
     f1_score,
-    precision_recall_curve,
     precision_score,
     recall_score,
-    roc_auc_score,
 )
-from sklearn.model_selection import train_test_split
 
-from src.data_pipeline import clean_and_engineer, download_dataset
-from src.phase3_feature_engineering import add_phase3_features, get_feature_sets
+from src.production_pipeline import (
+    RANDOM_STATE,
+    json_safe_float,
+    load_modeling_frame,
+    make_production_splits,
+    optimal_f1_threshold,
+    safe_auc,
+    split_metadata,
+)
 
-RANDOM_STATE = 42
 DEFAULT_OUTPUT_DIR = Path("models")
 TUNING_RESULTS = Path("results/phase4_tuning_results.json")
 
@@ -49,38 +51,38 @@ def load_best_params() -> dict:
 
 def load_and_prepare_data() -> tuple[pd.DataFrame, str]:
     """Load raw data, clean, engineer features, return ready-to-model DataFrame."""
-    raw_df = download_dataset()
-    df = clean_and_engineer(raw_df)
-    df = add_phase3_features(df)
-    target = "readmitted_binary"
+    df, _, target = load_modeling_frame()
     return df, target
 
 
 def train_champion(
     df: pd.DataFrame,
     target: str,
+    feature_cols: list[str],
     best_params: dict,
     output_dir: Path,
 ) -> dict:
     """Train CatBoost champion, calibrate, save artifacts, return metrics."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    feature_sets = get_feature_sets(df)
-    feature_cols = feature_sets["full_83"]
-
     X = df[feature_cols]
     y = df[target]
 
-    # 60/20/20 split: train / calibration / test
-    X_trainval, X_test, y_trainval, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=RANDOM_STATE, stratify=y,
-    )
-    X_train, X_cal, y_train, y_cal = train_test_split(
-        X_trainval, y_trainval, test_size=0.25, random_state=RANDOM_STATE, stratify=y_trainval,
-    )
+    splits = make_production_splits(X, y)
+    X_train, y_train = splits["train"]
+    X_early, y_early = splits["early_stop"]
+    X_cal, y_cal = splits["calibration"]
+    X_test, y_test = splits["test"]
 
-    print(f"Train: {len(X_train)} | Cal: {len(X_cal)} | Test: {len(X_test)}")
-    print(f"Positive rate — Train: {y_train.mean():.3f} | Test: {y_test.mean():.3f}")
+    print(
+        f"Train: {len(X_train)} | Early-stop: {len(X_early)} | "
+        f"Cal: {len(X_cal)} | Test: {len(X_test)}"
+    )
+    print(
+        "Positive rate — "
+        f"Train: {y_train.mean():.3f} | Early-stop: {y_early.mean():.3f} | "
+        f"Cal: {y_cal.mean():.3f} | Test: {y_test.mean():.3f}"
+    )
 
     # --- Train CatBoost ---
     model = CatBoostClassifier(
@@ -97,7 +99,7 @@ def train_champion(
     )
 
     t0 = time.time()
-    model.fit(X_train, y_train, eval_set=(X_cal, y_cal), early_stopping_rounds=50)
+    model.fit(X_train, y_train, eval_set=(X_early, y_early), early_stopping_rounds=50)
     train_time = time.time() - t0
     print(f"Training completed in {train_time:.1f}s ({model.best_iteration_} iterations)")
 
@@ -107,10 +109,7 @@ def train_champion(
 
     # --- Find optimal threshold ---
     cal_probs = calibrator.predict_proba(X_cal)[:, 1]
-    prec_arr, rec_arr, thresholds = precision_recall_curve(y_cal, cal_probs)
-    f1_scores = 2 * prec_arr * rec_arr / (prec_arr + rec_arr + 1e-8)
-    best_idx = int(np.nanargmax(f1_scores))
-    optimal_threshold = float(thresholds[best_idx]) if best_idx < len(thresholds) else 0.5
+    optimal_threshold = optimal_f1_threshold(y_cal, cal_probs)
 
     # --- Evaluate on test set ---
     test_probs = calibrator.predict_proba(X_test)[:, 1]
@@ -121,7 +120,7 @@ def train_champion(
         "f1": float(f1_score(y_test, test_preds)),
         "precision": float(precision_score(y_test, test_preds)),
         "recall": float(recall_score(y_test, test_preds)),
-        "auc": float(roc_auc_score(y_test, test_probs)),
+        "auc": json_safe_float(safe_auc(y_test, test_probs)),
         "avg_precision": float(average_precision_score(y_test, test_probs)),
         "brier": float(brier_score_loss(y_test, test_probs)),
         "threshold": optimal_threshold,
@@ -140,12 +139,12 @@ def train_champion(
             subgroup_metrics[name] = {
                 "n": int(mask.sum()),
                 "recall": float(recall_score(sg_y, sg_preds, zero_division=0)),
-                "auc": float(roc_auc_score(sg_y, sg_probs)),
+                "auc": json_safe_float(safe_auc(sg_y, sg_probs)),
                 "readmit_rate": float(sg_y.mean()),
             }
 
     # --- Inference latency benchmark ---
-    sample = X_test.iloc[:100]
+    sample = X_test.iloc[: min(100, len(X_test))]
     t0 = time.perf_counter()
     for _ in range(10):
         calibrator.predict_proba(sample)
@@ -164,9 +163,11 @@ def train_champion(
         "optimal_threshold": optimal_threshold,
         "train_time_seconds": round(train_time, 1),
         "latency_ms_per_sample": round(latency_ms, 4),
+        "split_metadata": split_metadata(splits),
         "test_metrics": test_metrics,
         "subgroup_metrics": subgroup_metrics,
         "train_samples": len(X_train),
+        "early_stop_samples": len(X_early),
         "cal_samples": len(X_cal),
         "test_samples": len(X_test),
         "positive_rate": float(y.mean()),
@@ -204,8 +205,8 @@ def main():
     args = parser.parse_args()
 
     best_params = load_best_params()
-    df, target = load_and_prepare_data()
-    train_champion(df, target, best_params, Path(args.output_dir))
+    df, feature_cols, target = load_modeling_frame()
+    train_champion(df, target, feature_cols, best_params, Path(args.output_dir))
 
 
 if __name__ == "__main__":
