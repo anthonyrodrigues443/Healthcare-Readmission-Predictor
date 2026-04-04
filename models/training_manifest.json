@@ -1,0 +1,51 @@
+{
+  "model_type": "CatBoost + Isotonic Calibration",
+  "best_params": {
+    "depth": 8,
+    "learning_rate": 0.006362094812921068,
+    "l2_leaf_reg": 4.192319564932448,
+    "random_strength": 0.18484318661653115,
+    "bagging_temperature": 0.5298517589488888,
+    "border_count": 64,
+    "min_data_in_leaf": 9
+  },
+  "n_iterations": 932,
+  "feature_count": 83,
+  "optimal_threshold": 0.1460446247464503,
+  "train_time_seconds": 8.9,
+  "latency_ms_per_sample": 0.0101,
+  "test_metrics": {
+    "accuracy": 0.7167632897710524,
+    "f1": 0.2899371843823131,
+    "precision": 0.20126538987688097,
+    "recall": 0.5182738881549978,
+    "auc": 0.6861824188396122,
+    "avg_precision": 0.22133012805403224,
+    "brier": 0.09384026336578136,
+    "threshold": 0.1460446247464503
+  },
+  "subgroup_metrics": {
+    "low_util": {
+      "n": 11108,
+      "recall": 0.1870824053452116,
+      "auc": 0.6580800407478584,
+      "readmit_rate": 0.08084263593806265
+    },
+    "high_util": {
+      "n": 1983,
+      "recall": 0.9097222222222222,
+      "auc": 0.6725551913938439,
+      "readmit_rate": 0.2178517397881997
+    }
+  },
+  "train_samples": 61059,
+  "cal_samples": 20353,
+  "test_samples": 20354,
+  "positive_rate": 0.11159915885462728,
+  "artifacts": [
+    "catboost_champion.cbm",
+    "calibrator.joblib",
+    "feature_columns.joblib",
+    "training_manifest.json"
+  ]
+}

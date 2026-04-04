@@ -2,6 +2,7 @@ data/raw/
 data/processed/
 models/*.pkl
 models/*.joblib
+models/*.cbm
 __pycache__/
 *.pyc
 .venv/
